@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 
-{% block title %}RPA Bot Execution Logs{% endblock %}
+{% block title %}EDI Transmission Logs{% endblock %}
 
 {% block content %}
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-    <h1 class="h2">RPA Execution Logs</h1>
+    <h1 class="h2">EDI Transmission Logs</h1>
 </div>
 
 <div class="table-responsive">
@@ -13,7 +13,7 @@
             <tr>
                 <th>Date / Time</th>
                 <th>Claim ID</th>
-                <th>Target Portal</th>
+                <th>Target Provider</th>
                 <th>Status</th>
                 <th>Reference #</th>
                 <th>Message</th>
@@ -31,7 +31,7 @@
                     -
                     {% endif %}
                 </td>
-                <td>{{ log.credential.get_administrator_display|default:"Unknown" }}</td>
+                <td>{{ log.portal_name|default:"Unknown" }}</td>
                 <td>
                     {% if log.success %}
                         <span class="badge bg-success">Success</span>
@@ -68,7 +68,7 @@
             </tr>
             {% empty %}
             <tr>
-                <td colspan="7" class="text-center py-4 text-muted">No RPA logs found.</td>
+                <td colspan="7" class="text-center py-4 text-muted">No EDI logs found.</td>
             </tr>
             {% endfor %}
         </tbody>

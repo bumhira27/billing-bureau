@@ -384,5 +384,5 @@ class RpaLogListView(LoginRequiredMixin, ListView):
     paginate_by = 50
 
     def get_queryset(self):
-        return RpaSubmissionLog.objects.select_related('claim', 'credential').order_by('-created_at')
+        return RpaSubmissionLog.objects.select_related('claim').order_by('-created_at')
 
