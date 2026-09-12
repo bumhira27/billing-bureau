@@ -7,13 +7,15 @@ from .models import Patient, PatientScheme
 from .forms import PatientForm, PatientSchemeForm
 from practices.models import Practice
 
+from core.mixins import RBACQuerySetMixin
+
 class CreatedByMixin:
     def form_valid(self, form):
         if hasattr(form.instance, 'created_by_id') and not form.instance.created_by_id:
             form.instance.created_by = self.request.user
         return super().form_valid(form)
 
-class PatientListView(ListView):
+class PatientListView(LoginRequiredMixin, RBACQuerySetMixin, ListView):
     model = Patient
     paginate_by = 30
     context_object_name = 'patients'
@@ -39,7 +41,7 @@ class PatientListView(ListView):
         context['practices'] = Practice.objects.all()
         return context
 
-class PatientDetailView(DetailView):
+class PatientDetailView(LoginRequiredMixin, RBACQuerySetMixin, DetailView):
     model = Patient
     template_name = 'patients/patient_detail.html'
     context_object_name = 'patient'
@@ -94,6 +96,9 @@ def patient_search_api(request):
     practice_id = request.GET.get('practice', '')
     
     qs = Patient.objects.all()
+    if not request.user.is_superuser and not request.user.groups.filter(name='BureauAdmin').exists():
+        qs = qs.filter(practice__users=request.user)
+
     if q:
         qs = qs.filter(Q(first_name__icontains=q) | Q(last_name__icontains=q) | Q(id_number__icontains=q))
     if practice_id:

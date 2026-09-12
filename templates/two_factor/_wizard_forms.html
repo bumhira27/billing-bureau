@@ -1,0 +1,22 @@
+﻿{{ wizard.management_form }}
+<div class="space-y-4">
+    {% for field in wizard.form %}
+        <div>
+            <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">{{ field.label }}</label>
+            {{ field }}
+            {% if field.help_text %}
+                <p class="mt-1 text-sm text-gray-500">{{ field.help_text }}</p>
+            {% endif %}
+            {% if field.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ field.errors.0 }}</p>
+            {% endif %}
+        </div>
+    {% endfor %}
+</div>
+<script>
+    // Tailwind styling for django generated inputs
+    document.querySelectorAll("input[type=text], input[type=password], input[type=tel], input[type=number], select").forEach(el => {
+        el.classList.add("w-full", "border", "border-gray-300", "rounded-md", "px-3", "py-2", "focus:outline-none", "focus:ring-2", "focus:ring-accent", "focus:border-transparent");
+    });
+</script>
+

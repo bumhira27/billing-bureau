@@ -33,6 +33,7 @@ class Practice(TimeStampedModel):
     popia_agreement_signed_date = models.DateField(null=True, blank=True)
     service_agreement_signed_date = models.DateField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
+    users = models.ManyToManyField('auth.User', related_name='assigned_practices', blank=True)
 
     class Meta:
         ordering = ['practice_name']

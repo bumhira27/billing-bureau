@@ -35,28 +35,29 @@
             <i class="bi bi-camera"></i> Scan Ward Notes
         </a>
 
+        {% load role_tags %}
+        {% if request.user.is_superuser or request.user|has_group:"BureauAdmin" %}
         <!-- Financials -->
         <div class="pt-4 pb-1">
             <p class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Financials</p>
         </div>
-        <a href="{% url 'billing_collections:dashboard' %}" class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors {% if request.resolver_match.url_name == 'dashboard' and 'collections' in request.path %}bg-accent text-white{% else %}hover:bg-gray-800 hover:text-white{% endif %}">
+        <a href="{% url 'billing_collections:financials' %}" class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors {% if request.resolver_match.url_name == 'financials' and 'collections' in request.path %}bg-accent text-white{% else %}hover:bg-gray-800 hover:text-white{% endif %}">
             <i class="bi bi-cash-stack"></i> Bureau Financials
         </a>
         <a href="{% url 'claims:rpa_logs' %}" class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors {% if request.resolver_match.url_name == 'rpa_logs' %}bg-accent text-white{% else %}hover:bg-gray-800 hover:text-white{% endif %}">
             <i class="bi bi-diagram-3"></i> EDI Logs
         </a>
+        {% endif %}
 
         <!-- Reference Data -->
         <div class="pt-4 pb-1">
             <p class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Reference Data</p>
         </div>
-        <a href="{% url 'reference_data:icd10_list' %}" class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors {% if 'icd10' in request.path %}bg-accent text-white{% else %}hover:bg-gray-800 hover:text-white{% endif %}">
-            <i class="bi bi-list-columns-reverse"></i> ICD-10 Codes
-        </a>
-        <a href="{% url 'reference_data:tariff_list' %}" class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors {% if 'tariff' in request.path %}bg-accent text-white{% else %}hover:bg-gray-800 hover:text-white{% endif %}">
-            <i class="bi bi-tags"></i> Tariff Codes
+        <a href="{% url 'reference_data:rejection_list' %}" class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors {% if 'rejections' in request.path %}bg-accent text-white{% else %}hover:bg-gray-800 hover:text-white{% endif %}">
+            <i class="bi bi-x-octagon"></i> Rejection Codes
         </a>
 
+        {% if request.user.is_superuser or request.user|has_group:"BureauAdmin" %}
         <!-- Admin -->
         <div class="pt-4 pb-1">
             <p class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">System</p>
@@ -64,5 +65,6 @@
         <a href="/admin/" class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors hover:bg-gray-800 hover:text-white">
             <i class="bi bi-gear"></i> Administration
         </a>
+        {% endif %}
     </nav>
 </aside>

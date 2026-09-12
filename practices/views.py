@@ -5,13 +5,15 @@ from django.db.models import Q
 from .models import Practice
 from .forms import PracticeForm
 
+from core.mixins import RBACQuerySetMixin
+
 class CreatedByMixin:
     def form_valid(self, form):
         if hasattr(form.instance, 'created_by_id') and not form.instance.created_by_id:
             form.instance.created_by = self.request.user
         return super().form_valid(form)
 
-class PracticeListView(ListView):
+class PracticeListView(LoginRequiredMixin, RBACQuerySetMixin, ListView):
     model = Practice
     template_name = 'practices/practice_list.html'
     context_object_name = 'practices'
@@ -24,7 +26,7 @@ class PracticeListView(ListView):
             qs = qs.filter(Q(practice_name__icontains=q) | Q(bhf_practice_number__icontains=q))
         return qs
 
-class PracticeDetailView(DetailView):
+class PracticeDetailView(LoginRequiredMixin, RBACQuerySetMixin, DetailView):
     model = Practice
     template_name = 'practices/practice_detail.html'
     context_object_name = 'practice'

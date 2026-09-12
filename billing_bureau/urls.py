@@ -3,6 +3,8 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 
+from two_factor.urls import urlpatterns as tf_urls
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('dashboard.urls')),
@@ -14,6 +16,7 @@ urlpatterns = [
     path('reference/', include('reference_data.urls')),
     path('bureau/', include('bureau.urls')),
     path('api/v1/', include('api.v1_urls')),
+    path('', include(tf_urls)),
     path('accounts/', include('django.contrib.auth.urls')),
 ]
 

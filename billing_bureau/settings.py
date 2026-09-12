@@ -36,6 +36,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     
+    'django_otp',
+    'django_otp.plugins.otp_totp',
+    'two_factor',
+    
     # Third-party apps
     'crispy_forms',
     'crispy_bootstrap5',
@@ -66,11 +70,13 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django_otp.middleware.OTPMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django_htmx.middleware.HtmxMiddleware',
     'auditlog.middleware.AuditlogMiddleware',
     'core.middleware.PHIReadLoggerMiddleware',
+    'core.middleware.EnforceBureauAdminMFAMiddleware',
 ]
 
 ROOT_URLCONF = 'billing_bureau.urls'
@@ -152,7 +158,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-LOGIN_URL = '/accounts/login/'
+LOGIN_URL = 'two_factor:login'
 LOGIN_REDIRECT_URL = '/'
 CELERY_TASK_ALWAYS_EAGER = True 
 

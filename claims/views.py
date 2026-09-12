@@ -12,10 +12,11 @@ from datetime import datetime, date
 import logging
 
 logger = logging.getLogger(__name__)
+from core.mixins import RBACQuerySetMixin
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
 
-class ClaimListView(LoginRequiredMixin, ListView):
+class ClaimListView(LoginRequiredMixin, RBACQuerySetMixin, ListView):
     model = Claim
     template_name = 'claims/claim_list.html'
     context_object_name = 'claims'
@@ -60,7 +61,7 @@ class ClaimListView(LoginRequiredMixin, ListView):
         context['statuses'] = Claim.CLAIM_STATUS_CHOICES
         return context
 
-class ClaimDetailView(LoginRequiredMixin, DetailView):
+class ClaimDetailView(LoginRequiredMixin, RBACQuerySetMixin, DetailView):
     model = Claim
     template_name = 'claims/claim_detail.html'
     context_object_name = 'claim'
@@ -377,7 +378,7 @@ class ReviewExtractedClaimView(LoginRequiredMixin, UpdateView):
 from django.views.generic import ListView
 from .models import RpaSubmissionLog
 
-class RpaLogListView(LoginRequiredMixin, ListView):
+class RpaLogListView(LoginRequiredMixin, RBACQuerySetMixin, ListView):
     model = RpaSubmissionLog
     template_name = 'claims/rpa_logs.html'
     context_object_name = 'logs'

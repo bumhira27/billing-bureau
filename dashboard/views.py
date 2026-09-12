@@ -97,21 +97,33 @@ class DashboardView(LoginRequiredMixin, DashboardMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         now = timezone.now()
         
-        total_practices = Practice.objects.filter(is_active=True).count()
+        user = self.request.user
+        is_admin = user.is_superuser or user.groups.filter(name='BureauAdmin').exists()
+        
+        if is_admin:
+            total_practices = Practice.objects.filter(is_active=True).count()
+            base_claims = Claim.objects.all()
+            recent_claims = base_claims.order_by('-created_at')[:10]
+            recent_payments = Payment.objects.order_by('-created_at')[:10]
+            top_codes = ClaimLineItem.objects.filter(rejection_code__isnull=False).exclude(rejection_code='').values(
+                'rejection_code'
+            ).annotate(count=Count('id')).order_by('-count')[:5]
+        else:
+            total_practices = Practice.objects.filter(users=user, is_active=True).count()
+            base_claims = Claim.objects.filter(practice__users=user)
+            recent_claims = base_claims.order_by('-created_at')[:10]
+            recent_payments = Payment.objects.filter(claim__practice__users=user).order_by('-created_at')[:10]
+            top_codes = ClaimLineItem.objects.filter(claim__practice__users=user, rejection_code__isnull=False).exclude(rejection_code='').values(
+                'rejection_code'
+            ).annotate(count=Count('id')).order_by('-count')[:5]
+            
         context['total_practices'] = total_practices
         
-        base_claims = Claim.objects.all()
         metrics = self.get_dashboard_metrics(base_claims, now)
         context.update(metrics)
         
-        context['recent_claims'] = Claim.objects.order_by('-created_at')[:10]
-        context['recent_payments'] = Payment.objects.order_by('-created_at')[:10]
-        
-        # Top rejection codes
-        top_codes = ClaimLineItem.objects.filter(rejection_code__isnull=False).exclude(rejection_code='').values(
-            'rejection_code'
-        ).annotate(count=Count('id')).order_by('-count')[:5]
-        
+        context['recent_claims'] = recent_claims
+        context['recent_payments'] = recent_payments
         context['top_rejection_codes'] = top_codes
         
         return context
@@ -145,6 +157,9 @@ def export_report(request):
     date_from = request.GET.get('date_from')
     date_to = request.GET.get('date_to')
     
+    user = request.user
+    is_admin = user.is_superuser or user.groups.filter(name='BureauAdmin').exists()
+    
     wb = openpyxl.Workbook()
     
     # Claims Summary
@@ -153,6 +168,9 @@ def export_report(request):
     ws1.append(["Claim ID", "Practice", "Patient", "Date of Service", "Total Billed", "Total Paid", "Status"])
     
     claims = Claim.objects.all()
+    if not is_admin:
+        claims = claims.filter(practice__users=user)
+        
     if practice_id:
         claims = claims.filter(practice_id=practice_id)
     if date_from:
@@ -168,6 +186,9 @@ def export_report(request):
     ws2.append(["Payment Date", "Claim ID", "Patient", "Amount", "Source", "Reference"])
     
     payments = Payment.objects.all()
+    if not is_admin:
+        payments = payments.filter(claim__practice__users=user)
+        
     if practice_id:
         payments = payments.filter(claim__practice_id=practice_id)
     if date_from:
