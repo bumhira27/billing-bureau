@@ -55,3 +55,57 @@ def process_remittance_file(remittance_file_id):
         remittance_file.processed_status = 'error'
         remittance_file.error_log = traceback.format_exc()
         remittance_file.save()
+
+import logging
+from datetime import date, timedelta
+from django.core.files.base import ContentFile
+from credentials.models import MedicalAidPortalCredential
+from rpa_adapters.discovery_bot import DiscoveryPortalBot
+from rpa_adapters.medscheme_bot import MedschemePortalBot
+
+logger = logging.getLogger(__name__)
+
+@shared_task
+def fetch_daily_remittances_task():
+    """
+    Scheduled task to automatically download eRA files from all active portals
+    for the previous day, and save them as RemittanceFile records.
+    """
+    credentials = MedicalAidPortalCredential.objects.filter(is_active=True)
+    
+    # By default, fetch for yesterday
+    yesterday = date.today() - timedelta(days=1)
+    date_str = yesterday.strftime('%Y-%m-%d')
+    
+    for cred in credentials:
+        if cred.administrator == 'discovery':
+            bot = DiscoveryPortalBot(username=cred.username, password=cred.password, portal_url=cred.portal_url, headless=True)
+        elif cred.administrator == 'medscheme':
+            bot = MedschemePortalBot(username=cred.username, password=cred.password, portal_url=cred.portal_url, headless=True)
+        else:
+            continue
+            
+        try:
+            logger.info(f"Fetching remittances for {cred.administrator} ({cred.username}) for {date_str}")
+            # Fetch files
+            file_bytes_list = bot.fetch_remittances(date_str, date_str)
+            
+            for idx, file_bytes in enumerate(file_bytes_list):
+                # Create RemittanceFile
+                remit_file = RemittanceFile(
+                    switch_provider=cred.administrator,
+                    file_name=f"{cred.administrator}_era_{date_str}_{idx}.txt",
+                    total_records=0,
+                    total_amount=0.00,
+                    processed_status='pending'
+                )
+                remit_file.file.save(f"{cred.administrator}_{date_str}_{idx}.txt", ContentFile(file_bytes))
+                remit_file.save()
+                
+                logger.info(f"Saved RemittanceFile {remit_file.id} for {cred.administrator}")
+                
+                # Trigger AutoMatcher automatically
+                process_remittance_file.delay(remit_file.id)
+                
+        except Exception as e:
+            logger.error(f"Failed to fetch remittances for {cred.administrator} ({cred.username}): {str(e)}")

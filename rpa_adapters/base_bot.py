@@ -15,16 +15,25 @@ class BasePortalBot(abc.ABC):
     """
     Standard interface for all RPA bots communicating with medical aid portals.
     """
-    def __init__(self, username: str, password: str, portal_url: str, headless: bool = True):
+    def __init__(self, username: str, password: str, portal_url: str, headless: bool = True, dry_run: bool = True):
         self.username = username
         self.password = password
         self.portal_url = portal_url
         self.headless = headless
+        self.dry_run = dry_run
 
     @abc.abstractmethod
     def submit_claim(self, claim_dto: ClaimDTO) -> BotResult:
         """
         Submit a single claim to the portal using the standard ClaimDTO.
+        """
+        pass
+        
+    @abc.abstractmethod
+    def fetch_remittances(self, date_from: str, date_to: str) -> list[bytes]:
+        """
+        Download remittance advice files (eRA) from the portal for a given date range.
+        Returns a list of file contents as bytes.
         """
         pass
 
