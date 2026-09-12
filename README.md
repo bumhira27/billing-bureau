@@ -4,9 +4,12 @@ An enterprise medical billing bureau management platform built for South African
 
 ## Architecture & System Features
 
-- **Direct Scheme Gateway Automation (Zero-Switch Cost)**: Bypasses third-party commercial switching fees by submitting claims directly through scheme provider web portals (Discovery Health, Medscheme/GEMS, Momentum/Metropolitan) using bureau master credentials and headless browser automation.
+- **Direct Scheme Gateway Automation (Zero-Switch Cost)**: Bypasses third-party commercial switching fees by submitting claims directly through scheme provider web portals using bureau master credentials and headless browser automation.
+- **Modular Bot Ecosystem & Interoperability DTOs**: Decoupled RPA bot adapters using FHIR-inspired Data Transfer Objects (`ClaimDTO`). Enables plug-and-play portal adapters isolated from the Django ORM.
+- **Pre-Scrubbing Rules Engine**: `ClaimScrubber` registry that automatically validates claims for clinical and business rules (e.g., gender-ICD10 mismatch, age-tariff restrictions) *before* attempting submission, saving compute and reducing rejections.
+- **POPIA / HIPAA Compliance Engine**: Enforces strict patient privacy via database-level deterministic AES encryption (`EncryptedCharField`) for Patient Health Information (PHI) and intercepts views with a `PHIReadLoggerMiddleware` for complete access auditing.
 - **Gateway Circuit Breaker**: Protects bureau credentials and prevents system hang-ups during scheme maintenance windows with automated failure tracking, cooldown periods, and administrative resets.
-- **Versioned REST API v1 (`/api/v1/`)**: RESTful API endpoints for claim submission and bedside ward sync with mandatory `Idempotency-Key` headers to prevent duplicate claim rejections (`06: Duplicate claim`). Returns RFC 7807 problem details on errors.
+- **Versioned REST API v1 (`/api/v1/`)**: RESTful API endpoints for claim submission and bedside ward sync with mandatory `Idempotency-Key` headers to prevent duplicate claim rejections.
 - **Offline Bedside Ward Sync**: Allows doctors rounding in hospital wards to capture consultations offline and batch-sync encounters atomically once connected to Wi-Fi.
 - **eRA Reconciliation Engine**: Automated parsing and multi-pass matching (exact reference, BHF + membership, patient surname, date tolerance) for CSV, XML, and MediSwitch pipe-delimited remittance advice files with database row-level locking (`select_for_update()`).
 - **Collections & Commission Engine**: Calculates bureau commission fees (e.g., 2% of collections) per practice, tracks patient liability, and generates statement reminders.
