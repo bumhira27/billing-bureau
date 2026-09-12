@@ -9,32 +9,26 @@ from practices.models import Practice, PortalCredential
 from credentials.models import MedicalAidPortalCredential
 from patients.models import Patient, PatientScheme
 from claims.models import Claim, ClaimLineItem, RpaSubmissionLog
-from claims.rpa.simulator_bot import SimulatorPortalBot
-from claims.rpa.discovery_bot import DiscoveryPortalBot
-from claims.rpa.medscheme_bot import MedschemePortalBot
+from rpa_adapters.dtos import ClaimDTO, PatientDTO, PracticeDTO, ClaimLineDTO
+from rpa_adapters.simulator_bot import SimulatorPortalBot
+from rpa_adapters.discovery_bot import DiscoveryPortalBot
+from rpa_adapters.medscheme_bot import MedschemePortalBot
 from claims.tasks import submit_claim_rpa
 
 
 class RpaPortalBotTests(TestCase):
     def test_simulator_bot_headless_execution(self):
-        bot = SimulatorPortalBot(username="BUR-DH-88921", password="testpassword", headless=True)
-        self.assertTrue(bot.verify_login())
+        bot = SimulatorPortalBot(username="BUR-DH-88921", password="testpassword", portal_url="test", headless=True)
 
-        claim_data = {
-            'patient_name': 'Test Baby Patient',
-            'membership_number': '901234567',
-            'dependent_code': '00',
-            'tariff_code': '0190',
-            'icd10': 'J06.9',
-            'amount_billed': '550.00',
-            'practice_number': '1263250',
-            'practice_name': 'Rising Star Paediatrics',
-            'doctor_name': 'Dr. Dimakatso Letsie',
-            'bureau_username': 'BUR-DH-88921',
-            'bureau_bhf': 'BUR-88921',
-            'scheme_name': 'Discovery Health Medical Scheme',
-            'date_of_service': '2026-09-12'
-        }
+        patient = PatientDTO(full_name='Test Baby Patient', id_number='', membership_number='901234567', dependent_code='00', scheme_name='Discovery Health Medical Scheme')
+        practice = PracticeDTO(practice_name='Rising Star Paediatrics', practice_number='1263250', provider_name='Dr. Dimakatso Letsie')
+        lines = [ClaimLineDTO(line_number=1, tariff_code='0190', icd10='J06.9', amount=550.00, modifiers=[])]
+        
+        claim_data = ClaimDTO(
+            claim_id=1, date_of_service='2026-09-12', total_amount=550.00,
+            patient=patient, practice=practice, lines=lines,
+            bureau_username='BUR-DH-88921', bureau_bhf='BUR-88921'
+        )
 
         result = bot.submit_claim(claim_data)
         self.assertTrue(result.success)
@@ -44,19 +38,21 @@ class RpaPortalBotTests(TestCase):
         self.assertGreater(result.execution_time, 0.0)
 
     def test_discovery_bot_delegation(self):
-        bot = DiscoveryPortalBot(username="BUR-DH-88921", password="testpassword", headless=True)
-        self.assertTrue(bot.verify_login())
-        claim_data = {
-            'patient_name': 'Discovery Patient',
-            'membership_number': '987654321',
-            'amount_billed': '620.00',
-            'bureau_username': 'BUR-DH-88921',
-            'practice_number': '1263250'
-        }
+        bot = DiscoveryPortalBot(username="BUR-DH-88921", password="testpassword", portal_url="test", headless=True)
+        
+        patient = PatientDTO(full_name='Discovery Patient', id_number='', membership_number='987654321', dependent_code='00', scheme_name='Discovery')
+        practice = PracticeDTO(practice_name='Practice', practice_number='1263250', provider_name='Dr')
+        lines = [ClaimLineDTO(line_number=1, tariff_code='0190', icd10='J06.9', amount=620.00, modifiers=[])]
+        
+        claim_data = ClaimDTO(
+            claim_id=2, date_of_service='2026-09-12', total_amount=620.00,
+            patient=patient, practice=practice, lines=lines,
+            bureau_username='BUR-DH-88921', bureau_bhf='BUR-88921'
+        )
+        
         res = bot.submit_claim(claim_data)
         self.assertTrue(res.success)
         self.assertTrue(res.reference_number.startswith("DIR-"))
-        self.assertEqual(res.portal_name, "Discovery Health Medical Scheme")
 
 
 class RpaTaskAndWorkflowTests(TestCase):

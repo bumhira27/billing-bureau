@@ -1,0 +1,33 @@
+import abc
+from typing import Optional
+from dataclasses import dataclass
+from .dtos import ClaimDTO
+
+@dataclass
+class BotResult:
+    success: bool
+    message: str
+    reference_number: str
+    execution_time: float
+    screenshot_bytes: Optional[bytes] = None
+
+class BasePortalBot(abc.ABC):
+    """
+    Standard interface for all RPA bots communicating with medical aid portals.
+    """
+    def __init__(self, username: str, password: str, portal_url: str, headless: bool = True):
+        self.username = username
+        self.password = password
+        self.portal_url = portal_url
+        self.headless = headless
+
+    @abc.abstractmethod
+    def submit_claim(self, claim_dto: ClaimDTO) -> BotResult:
+        """
+        Submit a single claim to the portal using the standard ClaimDTO.
+        """
+        pass
+
+    def verify_login(self) -> bool:
+        """Verify that credentials are valid (default implementation)."""
+        return bool(self.username and self.password)

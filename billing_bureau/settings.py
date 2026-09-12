@@ -69,6 +69,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django_htmx.middleware.HtmxMiddleware',
     'auditlog.middleware.AuditlogMiddleware',
+    'core.middleware.PHIReadLoggerMiddleware',
 ]
 
 ROOT_URLCONF = 'billing_bureau.urls'

@@ -2,29 +2,33 @@ import time
 import random
 from datetime import datetime
 from playwright.sync_api import sync_playwright
-from .base import BasePortalBot, RpaResult
+from .base_bot import BasePortalBot, BotResult
+from .dtos import ClaimDTO
 
 class SimulatorPortalBot(BasePortalBot):
     """
     RPA bot that renders and automates a South African provider portal workflow
     via Playwright in headless Chromium, capturing visual proof of submission.
     """
-    def verify_login(self) -> bool:
-        return True
 
-    def submit_claim(self, claim_dict: dict) -> RpaResult:
+    def submit_claim(self, claim_dto: ClaimDTO) -> BotResult:
         start_time = time.time()
-        patient_name = claim_dict.get('patient_name', 'Patient')
-        membership_number = claim_dict.get('membership_number', '901234567')
-        tariff_code = claim_dict.get('tariff_code', '0190')
-        icd10 = claim_dict.get('icd10', 'J06.9')
-        amount = claim_dict.get('amount_billed', '520.00')
-        practice_nr = claim_dict.get('practice_number', '1263250')
-        practice_name = claim_dict.get('practice_name', 'Rising Star Paediatrics (Pty) Ltd')
-        doctor_name = claim_dict.get('doctor_name', 'Dr. Dimakatso Tsholofetso Letsie')
-        bureau_user = claim_dict.get('bureau_username', self.username or 'BUR-MASTER')
-        bureau_bhf = claim_dict.get('bureau_bhf', 'BUR-88921')
-        scheme_name = claim_dict.get('scheme_name', 'Discovery Health Medical Scheme')
+        
+        patient_name = claim_dto.patient.full_name
+        membership_number = claim_dto.patient.membership_number
+        
+        # Take the first line for simplification in simulator display
+        first_line = claim_dto.lines[0] if claim_dto.lines else None
+        tariff_code = first_line.tariff_code if first_line else '0190'
+        icd10 = first_line.icd10 if first_line else 'J06.9'
+        
+        amount = f"{claim_dto.total_amount:.2f}"
+        practice_nr = claim_dto.practice.practice_number
+        practice_name = claim_dto.practice.practice_name
+        doctor_name = claim_dto.practice.provider_name
+        bureau_user = claim_dto.bureau_username or self.username or 'BUR-MASTER'
+        bureau_bhf = claim_dto.bureau_bhf or 'BUR-88921'
+        scheme_name = claim_dto.patient.scheme_name
 
         ref_number = f"DIR-{datetime.now().strftime('%Y%m%d')}-{random.randint(10000, 99999)}"
 
@@ -119,11 +123,10 @@ class SimulatorPortalBot(BasePortalBot):
             browser.close()
 
         execution_time = round(time.time() - start_time, 2)
-        return RpaResult(
+        return BotResult(
             success=True,
             reference_number=ref_number,
             message=f"Direct submission accepted on {scheme_name} portal.",
             screenshot_bytes=screenshot_bytes,
             execution_time=execution_time,
-            portal_name=scheme_name
         )

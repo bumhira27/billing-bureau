@@ -8,6 +8,7 @@ from core.models import TimeStampedModel
 class Claim(TimeStampedModel):
     CLAIM_STATUS_CHOICES = [
         ('draft', 'Draft'),
+        ('requires_correction', 'Requires Correction'),
         ('submitted', 'Submitted'),
         ('accepted', 'Accepted'),
         ('rejected', 'Rejected'),

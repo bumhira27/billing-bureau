@@ -1,6 +1,7 @@
 from django.db import models
 from django.core.validators import RegexValidator
 from core.models import TimeStampedModel
+from core.fields import EncryptedCharField
 from practices.models import Practice
 
 class Patient(TimeStampedModel):
@@ -13,16 +14,16 @@ class Patient(TimeStampedModel):
     practice = models.ForeignKey(Practice, on_delete=models.CASCADE, related_name='patients')
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
-    id_number = models.CharField(
-        max_length=13, 
+    id_number = EncryptedCharField(
+        max_length=255, 
         blank=True, 
         help_text='SA ID number',
         validators=[RegexValidator(r'^\d{13}$', 'Enter a valid 13-digit SA ID number.')]
     )
     date_of_birth = models.DateField()
     gender = models.CharField(max_length=1, choices=GENDER_CHOICES)
-    phone = models.CharField(max_length=20, blank=True)
-    email = models.EmailField(blank=True)
+    phone = EncryptedCharField(max_length=255, blank=True)
+    email = EncryptedCharField(max_length=255, blank=True)
     physical_address = models.TextField(blank=True)
     postal_code = models.CharField(max_length=10, blank=True)
 
@@ -47,10 +48,10 @@ class PatientScheme(TimeStampedModel):
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='schemes')
     scheme_name = models.CharField(max_length=255)
     scheme_option = models.CharField(max_length=100, blank=True)
-    membership_number = models.CharField(max_length=50)
+    membership_number = EncryptedCharField(max_length=255)
     dependent_code = models.CharField(max_length=5, default='00')
     main_member_name = models.CharField(max_length=255, blank=True)
-    main_member_id_number = models.CharField(max_length=13, blank=True)
+    main_member_id_number = EncryptedCharField(max_length=255, blank=True)
     is_active = models.BooleanField(default=True)
     verified_date = models.DateField(null=True, blank=True)
 
@@ -61,3 +62,17 @@ class PatientScheme(TimeStampedModel):
 
     def __str__(self):
         return f"{self.scheme_name} - {self.membership_number} (dep {self.dependent_code})"
+
+class PHIReadAudit(TimeStampedModel):
+    user = models.ForeignKey('auth.User', on_delete=models.SET_NULL, null=True, blank=True)
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
+    endpoint = models.CharField(max_length=255)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'PHI Read Audit'
+        verbose_name_plural = 'PHI Read Audits'
+
+    def __str__(self):
+        return f"{self.user} read {self.patient} at {self.created_at}"

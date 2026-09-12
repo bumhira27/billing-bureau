@@ -4,10 +4,14 @@ from celery import shared_task
 from django.utils import timezone
 from django.core.files.base import ContentFile
 from claims.models import Claim, RpaSubmissionLog, ClaimNote
+from claims.scrubbing import ClaimScrubber
 from credentials.models import MedicalAidPortalCredential
-from .rpa.discovery_bot import DiscoveryPortalBot
-from .rpa.medscheme_bot import MedschemePortalBot
-from .rpa.simulator_bot import SimulatorPortalBot
+
+# Use the new modular RPA adapters
+from rpa_adapters.discovery_bot import DiscoveryPortalBot
+from rpa_adapters.medscheme_bot import MedschemePortalBot
+from rpa_adapters.simulator_bot import SimulatorPortalBot
+from rpa_adapters.dtos import ClaimDTO, PatientDTO, PracticeDTO, ClaimLineDTO
 
 logger = logging.getLogger(__name__)
 
@@ -23,6 +27,16 @@ def submit_claim_rpa(claim_id: int):
     except Claim.DoesNotExist:
         logger.error(f"Claim with id {claim_id} does not exist.")
         return {"error": "Claim not found"}
+
+    # 0. Pre-submission Scrubbing
+    scrub_errors = ClaimScrubber.scrub(claim)
+    if scrub_errors:
+        claim.claim_status = 'requires_correction'
+        error_msg = "\n".join(f"- {e}" for e in scrub_errors)
+        note_text = f"Scrubbing Failed:\n{error_msg}"
+        claim.notes = f"{claim.notes}\n\n{note_text}".strip() if claim.notes else note_text
+        claim.save(update_fields=['claim_status', 'notes'])
+        return {"success": False, "error": "Scrubbing failed", "details": scrub_errors}
 
     practice = claim.practice
     scheme_name = claim.patient_scheme.scheme_name if claim.patient_scheme else "Medical Scheme"
@@ -79,31 +93,45 @@ def submit_claim_rpa(claim_id: int):
     portal_url = bureau_cred.portal_url if bureau_cred else ""
     bot = BotClass(username=username, password=password, portal_url=portal_url, headless=True)
 
-    # 2. Extract line item details
-    first_line = claim.line_items.first()
-    tariff_code = first_line.tariff_code if first_line else "0190"
-    icd10 = first_line.icd10_primary if first_line else "J06.9"
+    # 2. Extract line item details and construct the standard ClaimDTO
+    lines_dto = []
+    for i, line in enumerate(claim.line_items.all()):
+        lines_dto.append(ClaimLineDTO(
+            line_number=i+1,
+            tariff_code=line.tariff_code,
+            icd10=line.icd10_primary,
+            amount=float(line.amount_billed),
+            modifiers=[]
+        ))
 
-    claim_dict = {
-        'claim_id': claim.id,
-        'bureau_username': username,
-        'bureau_bhf': bureau_cred.bureau_bhf_number if bureau_cred else '',
-        'practice_number': practice.bhf_practice_number,
-        'practice_name': practice.practice_name,
-        'doctor_name': practice.owner_name,
-        'patient_name': claim.patient.full_name,
-        'membership_number': claim.patient_scheme.membership_number if claim.patient_scheme else "MEM9999",
-        'dependent_code': claim.patient_scheme.dependent_code if claim.patient_scheme else "00",
-        'date_of_service': claim.date_of_service.strftime('%Y-%m-%d'),
-        'tariff_code': tariff_code,
-        'icd10': icd10,
-        'amount_billed': str(claim.total_billed),
-        'scheme_name': scheme_name
-    }
+    patient_dto = PatientDTO(
+        full_name=claim.patient.full_name,
+        id_number=claim.patient.id_number or "",
+        membership_number=claim.patient_scheme.membership_number if claim.patient_scheme else "MEM9999",
+        dependent_code=claim.patient_scheme.dependent_code if claim.patient_scheme else "00",
+        scheme_name=scheme_name
+    )
 
-    # 3. Execute RPA Headless Browser automation
+    practice_dto = PracticeDTO(
+        practice_name=practice.practice_name,
+        practice_number=practice.bhf_practice_number,
+        provider_name=practice.owner_name
+    )
+
+    claim_dto = ClaimDTO(
+        claim_id=claim.id,
+        date_of_service=claim.date_of_service.strftime('%Y-%m-%d'),
+        total_amount=float(claim.total_billed),
+        patient=patient_dto,
+        practice=practice_dto,
+        lines=lines_dto,
+        bureau_username=username,
+        bureau_bhf=bureau_cred.bureau_bhf_number if bureau_cred else ''
+    )
+
+    # 3. Execute RPA Headless Browser automation via standardized interface
     try:
-        result = bot.submit_claim(claim_dict)
+        result = bot.submit_claim(claim_dto)
         if result.success:
             if bureau_cred:
                 bureau_cred.record_success()

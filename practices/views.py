@@ -105,9 +105,9 @@ def portal_credential_create(request, practice_pk):
 def portal_credential_test(request, pk):
     cred = get_object_or_404(PortalCredential, pk=pk)
     from django.utils import timezone
-    from claims.rpa.discovery_bot import DiscoveryPortalBot
-    from claims.rpa.medscheme_bot import MedschemePortalBot
-    from claims.rpa.simulator_bot import SimulatorPortalBot
+    from rpa_adapters.discovery_bot import DiscoveryPortalBot
+    from rpa_adapters.medscheme_bot import MedschemePortalBot
+    from rpa_adapters.simulator_bot import SimulatorPortalBot
 
     if cred.administrator == 'discovery':
         bot = DiscoveryPortalBot(username=cred.username, password=cred.password, portal_url=cred.portal_url)

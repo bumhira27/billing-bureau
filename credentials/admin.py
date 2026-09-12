@@ -50,9 +50,9 @@ class MedicalAidPortalCredentialAdmin(admin.ModelAdmin):
 
     @admin.action(description="Verify authentication / test selected portal credentials")
     def test_selected_credentials(self, request, queryset):
-        from claims.rpa.discovery_bot import DiscoveryPortalBot
-        from claims.rpa.medscheme_bot import MedschemePortalBot
-        from claims.rpa.simulator_bot import SimulatorPortalBot
+        from rpa_adapters.discovery_bot import DiscoveryPortalBot
+        from rpa_adapters.medscheme_bot import MedschemePortalBot
+        from rpa_adapters.simulator_bot import SimulatorPortalBot
 
         tested_count = 0
         for cred in queryset:
