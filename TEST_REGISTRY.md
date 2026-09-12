@@ -12,4 +12,4 @@ This registry maps every core system feature to its automated verification suite
 | **Patient Statements & Liability** | `billing_collections/tests.py` | Pass (2/2) | `PatientStatement`, `BureauInvoice` | Patient liability calculations, 2% commission ledger billing |
 | **Currency & Session Security** | `core/tests.py` | Pass (6/6) | `rands`, `percentage`, MFA Session Verification | South African currency formatting, TOTP verification session state |
 | **Remittance Auto-Reconciliation** | `reconciliation/tests.py` | Pass (4/4) | `AutoMatcher`, `RemittanceFile` | Atomic line matching, multi-pass matching, balance reconciliation |
-| **UI End-to-End Browser Automation** | Playwright E2E Suite | Outstanding | All interactive forms, modals, HTMX partial swaps | Headless browser execution against live local server |
+| **UI End-to-End Browser Automation** | `e2e/test_browser_workflows.py` | Pass (7/7 steps) | MFA, Dashboard, Practices, Claims EDI, EDI Logs, Financials, Reconciliation, OCR | Automated Playwright browser verification against live server |
