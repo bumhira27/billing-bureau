@@ -8,6 +8,7 @@ from patients.models import Patient
 from claims.models import Claim, ClaimLineItem
 from billing_collections.models import Payment, PatientStatement
 from datetime import date
+from django_otp.plugins.otp_static.models import StaticDevice
 
 
 class CurrencyTagsFilterTest(TestCase):
@@ -42,7 +43,15 @@ class SiteWideCurrencyRenderingTest(TestCase):
     def setUp(self):
         self.client = Client(SERVER_NAME='127.0.0.1')
         self.user = User.objects.create_superuser('testadmin', 'test@example.com', 'adminpass123')
+        # Create a confirmed OTP device so the user passes MFA checks
+        StaticDevice.objects.create(user=self.user, name='test', confirmed=True)
         self.client.login(username='testadmin', password='adminpass123')
+        # Mark session as OTP-verified
+        session = self.client.session
+        from django_otp import DEVICE_ID_SESSION_KEY
+        device = StaticDevice.objects.get(user=self.user)
+        session[DEVICE_ID_SESSION_KEY] = device.persistent_id
+        session.save()
 
         self.practice = Practice.objects.create(
             practice_name="Test Paediatrics",

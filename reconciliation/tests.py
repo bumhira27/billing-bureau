@@ -10,12 +10,21 @@ from claims.models import Claim, ClaimLineItem
 from reconciliation.models import RemittanceFile, RemittanceLine, ReconciliationLog
 from reconciliation.matching import AutoMatcher
 
+from django_otp.plugins.otp_static.models import StaticDevice
+from django_otp import DEVICE_ID_SESSION_KEY
+
 
 class AutoMatcherTransactionalTests(TestCase):
     def setUp(self):
         self.user = User.objects.create_superuser('adminrec', 'rec@example.com', 'pass123')
+        StaticDevice.objects.create(user=self.user, name='test', confirmed=True)
         self.client = Client()
         self.client.force_login(self.user)
+        # Mark session as OTP-verified
+        session = self.client.session
+        device = StaticDevice.objects.get(user=self.user)
+        session[DEVICE_ID_SESSION_KEY] = device.persistent_id
+        session.save()
 
         self.practice = Practice.objects.create(
             practice_name="Paediatric Care",
