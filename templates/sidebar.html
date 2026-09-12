@@ -1,83 +1,68 @@
-<nav id="sidebar" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse" style="padding-top: 56px; min-height: 100vh;">
-    <div class="position-sticky pt-3">
-        <ul class="nav flex-column">
-            <li class="nav-item">
-                <a class="nav-link {% if request.resolver_match.app_name == 'dashboard' %}active{% endif %}" href="{% url 'dashboard:index' %}">
-                    <i class="bi bi-speedometer2"></i> Dashboard
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link {% if request.resolver_match.app_name == 'practices' %}active{% endif %}" href="{% url 'practices:list' %}">
-                    <i class="bi bi-building"></i> Practices
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link {% if request.resolver_match.app_name == 'claims' and request.resolver_match.url_name != 'upload_note' %}active{% endif %}" href="{% url 'claims:list' %}">
-                    <i class="bi bi-file-earmark-medical"></i> Claims
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link {% if request.resolver_match.url_name == 'upload_note' %}active{% endif %}" href="{% url 'claims:upload_note' %}">
-                    <i class="bi bi-camera"></i> AI Note Capture
-                </a>
-            </li>
-        </ul>
-
-        <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted text-uppercase">
-            <span>Financials</span>
-        </h6>
-        <ul class="nav flex-column mb-2">
-            <li class="nav-item">
-                <a class="nav-link {% if request.resolver_match.app_name == 'reconciliation' %}active{% endif %}" href="{% url 'reconciliation:dashboard' %}">
-                    <i class="bi bi-arrow-left-right"></i> Reconciliation
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link {% if request.resolver_match.app_name == 'billing_collections' %}active{% endif %}" href="{% url 'billing_collections:overview' %}">
-                    <i class="bi bi-cash-stack"></i> Collections
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link {% if request.resolver_match.url_name == 'financials' %}active{% endif %}" href="{% url 'billing_collections:financials' %}">
-                    <i class="bi bi-wallet2"></i> Bureau Financials
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link {% if request.resolver_match.url_name == 'rpa_logs' %}active{% endif %}" href="{% url 'claims:rpa_logs' %}">
-                    <i class="bi bi-diagram-3"></i> EDI Transmission Logs
-                </a>
-            </li>
-        </ul>
-
-        <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted text-uppercase">
-            <span>Admin</span>
-        </h6>
-        <ul class="nav flex-column mb-2">
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'admin:index' %}">
-                    <i class="bi bi-gear"></i> Admin Panel
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="/admin/credentials/medicalaidportalcredential/">
-                    <i class="bi bi-key"></i> Portal Credentials
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link {% if request.resolver_match.app_name == 'bureau' and request.resolver_match.url_name == 'profile_update' %}active{% endif %}" href="{% url 'bureau:profile_update' %}">
-                    <i class="bi bi-gear-wide-connected"></i> Bureau Settings
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link {% if request.resolver_match.app_name == 'bureau' and request.resolver_match.url_name == 'invoice_list' %}active{% endif %}" href="{% url 'bureau:invoice_list' %}">
-                    <i class="bi bi-receipt"></i> Bureau Invoices
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link {% if request.resolver_match.app_name == 'reference_data' and request.resolver_match.url_name == 'rejection_list' %}active{% endif %}" href="{% url 'reference_data:rejection_list' %}">
-                    <i class="bi bi-shield-slash"></i> Rejection Codes
-                </a>
-            </li>
-        </ul>
+<aside class="w-64 bg-primary text-gray-300 flex-shrink-0 hidden md:flex flex-col border-r border-gray-800">
+    <div class="h-16 flex items-center px-6 border-b border-gray-800 bg-gray-900">
+        <span class="text-lg font-bold text-white tracking-tight">Billing Bureau</span>
     </div>
-</nav>
+
+    <nav class="flex-1 overflow-y-auto py-4 px-3 space-y-1 no-scrollbar">
+        <!-- Dashboard -->
+        <a href="/" class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors {% if request.path == '/' %}bg-accent text-white{% else %}hover:bg-gray-800 hover:text-white{% endif %}">
+            <i class="bi bi-house-door"></i>
+            Dashboard
+        </a>
+
+        <!-- Practice Management -->
+        <div class="pt-4 pb-1">
+            <p class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Practice Management</p>
+        </div>
+        <a href="{% url 'practices:list' %}" class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors {% if 'practices' in request.path %}bg-accent text-white{% else %}hover:bg-gray-800 hover:text-white{% endif %}">
+            <i class="bi bi-building"></i> Practices
+        </a>
+        <a href="{% url 'patients:list' %}" class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors {% if 'patients' in request.path %}bg-accent text-white{% else %}hover:bg-gray-800 hover:text-white{% endif %}">
+            <i class="bi bi-people"></i> Patients
+        </a>
+
+        <!-- Billing & Claims -->
+        <div class="pt-4 pb-1">
+            <p class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Billing & Claims</p>
+        </div>
+        <a href="{% url 'claims:list' %}" class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors {% if request.resolver_match.url_name == 'list' and 'claims' in request.path %}bg-accent text-white{% else %}hover:bg-gray-800 hover:text-white{% endif %}">
+            <i class="bi bi-file-text"></i> Claims
+        </a>
+        <a href="{% url 'claims:batch_capture' %}" class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors {% if request.resolver_match.url_name == 'batch_capture' %}bg-accent text-white{% else %}hover:bg-gray-800 hover:text-white{% endif %}">
+            <i class="bi bi-grid-3x3-gap"></i> Batch Capture
+        </a>
+        <a href="{% url 'claims:upload_note' %}" class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors {% if request.resolver_match.url_name == 'upload_note' %}bg-accent text-white{% else %}hover:bg-gray-800 hover:text-white{% endif %}">
+            <i class="bi bi-camera"></i> Scan Ward Notes
+        </a>
+
+        <!-- Financials -->
+        <div class="pt-4 pb-1">
+            <p class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Financials</p>
+        </div>
+        <a href="{% url 'billing_collections:dashboard' %}" class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors {% if request.resolver_match.url_name == 'dashboard' and 'collections' in request.path %}bg-accent text-white{% else %}hover:bg-gray-800 hover:text-white{% endif %}">
+            <i class="bi bi-cash-stack"></i> Bureau Financials
+        </a>
+        <a href="{% url 'claims:rpa_logs' %}" class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors {% if request.resolver_match.url_name == 'rpa_logs' %}bg-accent text-white{% else %}hover:bg-gray-800 hover:text-white{% endif %}">
+            <i class="bi bi-diagram-3"></i> EDI Logs
+        </a>
+
+        <!-- Reference Data -->
+        <div class="pt-4 pb-1">
+            <p class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Reference Data</p>
+        </div>
+        <a href="{% url 'reference_data:icd10_list' %}" class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors {% if 'icd10' in request.path %}bg-accent text-white{% else %}hover:bg-gray-800 hover:text-white{% endif %}">
+            <i class="bi bi-list-columns-reverse"></i> ICD-10 Codes
+        </a>
+        <a href="{% url 'reference_data:tariff_list' %}" class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors {% if 'tariff' in request.path %}bg-accent text-white{% else %}hover:bg-gray-800 hover:text-white{% endif %}">
+            <i class="bi bi-tags"></i> Tariff Codes
+        </a>
+
+        <!-- Admin -->
+        <div class="pt-4 pb-1">
+            <p class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">System</p>
+        </div>
+        <a href="/admin/" class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors hover:bg-gray-800 hover:text-white">
+            <i class="bi bi-gear"></i> Administration
+        </a>
+    </nav>
+</aside>

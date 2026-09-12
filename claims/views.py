@@ -386,3 +386,8 @@ class RpaLogListView(LoginRequiredMixin, ListView):
     def get_queryset(self):
         return RpaSubmissionLog.objects.select_related('claim').order_by('-created_at')
 
+    def get_template_names(self):
+        if self.request.htmx:
+            return ['claims/partials/rpa_logs_table.html']
+        return [self.template_name]
+

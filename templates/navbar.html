@@ -1,37 +1,21 @@
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
-    <div class="container-fluid">
-        <a class="navbar-brand fw-bold" href="{% url 'dashboard:index' %}">
-            {% if bureau_profile and bureau_profile.logo %}
-                <img src="{{ bureau_profile.logo.url }}" alt="Logo" height="30" class="d-inline-block align-text-top">
-            {% else %}
-                <i class="bi bi-hospital"></i>
-            {% endif %}
-            {{ bureau_profile.name|default:"Billing Bureau" }}
-        </a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarTop">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarTop">
-            <ul class="navbar-nav ms-auto">
-                {% if user.is_authenticated %}
-                    <li class="nav-item">
-                        <span class="nav-link text-light">
-                            <i class="bi bi-person-circle"></i> {{ user.get_full_name|default:user.username }}
-                        </span>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'logout' %}">
-                            <i class="bi bi-box-arrow-right"></i> Logout
-                        </a>
-                    </li>
-                {% else %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'login' %}">
-                            <i class="bi bi-box-arrow-in-right"></i> Login
-                        </a>
-                    </li>
-                {% endif %}
-            </ul>
-        </div>
+<header class="bg-surface border-b border-gray-200 px-6 py-4 flex items-center justify-between sticky top-0 z-20">
+    <div class="flex items-center gap-4">
+        <!-- Mobile menu toggle would go here -->
+        <h2 class="text-xl font-semibold text-gray-800 tracking-tight">{% block header_title %}Dashboard{% endblock %}</h2>
     </div>
-</nav>
+
+    <div class="flex items-center gap-4">
+        {% if request.user.is_authenticated %}
+            <div class="text-sm font-medium text-gray-600">
+                <i class="bi bi-person-circle mr-1"></i> {{ request.user.username }}
+            </div>
+            
+            <form method="post" action="{% url 'logout' %}" class="inline">
+                {% csrf_token %}
+                <button type="submit" class="text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors">
+                    Logout
+                </button>
+            </form>
+        {% endif %}
+    </div>
+</header>
