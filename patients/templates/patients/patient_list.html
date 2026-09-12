@@ -1,73 +1,147 @@
 {% extends 'base.html' %}
 
+{% block header_title %}Patients{% endblock %}
+
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>Patients</h2>
-    <div class="dropdown">
-        <button class="btn btn-primary dropdown-toggle" type="button" id="addPatientDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-            Add Patient
-        </button>
-        <ul class="dropdown-menu" aria-labelledby="addPatientDropdown">
-            {% for p in practices %}
-                <li><a class="dropdown-item" href="{% url 'patients:create' p.pk %}">{{ p.practice_name }}</a></li>
-            {% endfor %}
-        </ul>
-    </div>
-</div>
-
-<div class="d-flex justify-content-between mb-4">
-    <form method="get" class="d-flex flex-grow-1 me-3" hx-get="{% url 'patients:list' %}" hx-target="#patient-table-body" hx-trigger="keyup from:[name='q'] delay:500ms">
-        {% if request.GET.practice %}<input type="hidden" name="practice" value="{{ request.GET.practice }}">{% endif %}
-        <input type="text" name="q" class="form-control" placeholder="Smart Search: Name, ID, or Phone..." value="{{ request.GET.q }}">
-    </form>
-    <button class="btn btn-outline-secondary" type="button" data-bs-toggle="offcanvas" data-bs-target="#advancedPatientFilters" aria-controls="advancedPatientFilters">
-        <i class="bi bi-sliders"></i> Advanced Filters
-    </button>
-</div>
-
-<!-- Offcanvas Advanced Filters -->
-<div class="offcanvas offcanvas-end" tabindex="-1" id="advancedPatientFilters" aria-labelledby="advancedPatientFiltersLabel">
-    <div class="offcanvas-header">
-        <h5 class="offcanvas-title" id="advancedPatientFiltersLabel">Filter Patients</h5>
-        <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-    </div>
-    <div class="offcanvas-body">
-        <form method="get" hx-get="{% url 'patients:list' %}" hx-target="#patient-table-body" hx-trigger="change">
-            <input type="hidden" name="q" value="{{ request.GET.q }}">
+<div x-data="{ filtersOpen: false }" class="w-full space-y-6">
+    
+    <!-- Header & Actions -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-gray-200 pb-5">
+        <div>
+            <h1 class="text-2xl font-semibold text-gray-900">Patient Directory</h1>
+            <p class="text-sm text-gray-500 mt-1">Manage patient records across all bureau practices.</p>
+        </div>
+        
+        <!-- Add Patient Dropdown (Alpine) -->
+        <div x-data="{ dropdownOpen: false }" class="relative">
+            <button @click="dropdownOpen = !dropdownOpen" @click.away="dropdownOpen = false" class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-accent rounded-lg shadow-sm hover:bg-blue-700 transition-colors">
+                <i class="bi bi-person-plus"></i> Add Patient <i class="bi bi-chevron-down text-xs ml-1"></i>
+            </button>
             
-            <div class="mb-3">
-                <label class="form-label">Practice</label>
-                <select name="practice" class="form-select">
-                    <option value="">All Practices</option>
+            <div x-show="dropdownOpen" x-transition.opacity style="display: none;" class="absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10 focus:outline-none">
+                <div class="py-1">
+                    <div class="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider bg-gray-50 border-b border-gray-100">Select Practice</div>
                     {% for p in practices %}
-                        <option value="{{ p.id }}" {% if request.GET.practice == p.id|stringformat:"s" %}selected{% endif %}>{{ p.practice_name }}</option>
+                        <a href="{% url 'patients:create' p.pk %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900">{{ p.practice_name }}</a>
                     {% endfor %}
-                </select>
+                </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Search & Filter Bar -->
+    <div class="flex items-center justify-between gap-4">
+        <form method="get" class="flex-1 flex items-center gap-3" hx-get="{% url 'patients:list' %}" hx-target="#patient-table-body" hx-trigger="keyup from:[name='q'] delay:500ms, search from:[name='q']">
+            {% if request.GET.practice %}<input type="hidden" name="practice" value="{{ request.GET.practice }}">{% endif %}
             
-            <button type="submit" class="btn btn-primary w-100">Apply Filters</button>
-            <a href="{% url 'patients:list' %}" class="btn btn-outline-secondary w-100 mt-2">Clear All</a>
+            <div class="relative w-full max-w-lg">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <i class="bi bi-search text-gray-400"></i>
+                </div>
+                <!-- Adding 'search' event listener for immediate triggering when clearing input -->
+                <input type="search" name="q" value="{{ request.GET.q }}" placeholder="Search by name, ID, or phone..." 
+                       class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-accent focus:border-accent sm:text-sm transition-colors">
+            </div>
+            <!-- Submit button not strictly necessary with HTMX keyup, but good fallback -->
+            <button type="submit" class="hidden sm:block px-4 py-2 text-sm font-medium text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition-colors shadow-sm">
+                Search
+            </button>
         </form>
+        
+        <button @click="filtersOpen = true" class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 transition-colors">
+            <i class="bi bi-sliders"></i> Filters
+        </button>
+    </div>
+
+    <!-- Main Table -->
+    <div class="bg-surface border border-gray-200 shadow-soft rounded-xl overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-gray-50 border-b border-gray-200">
+                        <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Name</th>
+                        <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">ID Number</th>
+                        <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Scheme</th>
+                        <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Phone</th>
+                        <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Practice</th>
+                        <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="patient-table-body" class="divide-y divide-gray-100 bg-white">
+                    {% include 'patients/patient_list_partial.html' %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination Fallback -->
+        {% if is_paginated %}
+        <div class="px-6 py-4 border-t border-gray-200 bg-gray-50 flex items-center justify-between">
+            <span class="text-sm text-gray-700">
+                Page <span class="font-medium">{{ page_obj.number }}</span> of <span class="font-medium">{{ page_obj.paginator.num_pages }}</span>
+            </span>
+            <div class="flex gap-2">
+                {% if page_obj.has_previous %}
+                    <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" class="px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-surface hover:bg-gray-50 transition-colors">Previous</a>
+                {% else %}
+                    <button disabled class="px-3 py-1 border border-gray-200 rounded-md text-sm font-medium text-gray-400 bg-gray-50 cursor-not-allowed">Previous</button>
+                {% endif %}
+                
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" class="px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-surface hover:bg-gray-50 transition-colors">Next</a>
+                {% else %}
+                    <button disabled class="px-3 py-1 border border-gray-200 rounded-md text-sm font-medium text-gray-400 bg-gray-50 cursor-not-allowed">Next</button>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Advanced Filters Slide-Over (Alpine.js) -->
+    <div x-show="filtersOpen" style="display: none;" class="fixed inset-0 z-50 overflow-hidden" aria-labelledby="slide-over-title" role="dialog" aria-modal="true">
+        <div class="absolute inset-0 overflow-hidden">
+            <!-- Background overlay -->
+            <div x-show="filtersOpen" x-transition.opacity class="absolute inset-0 bg-gray-900 bg-opacity-50 transition-opacity" @click="filtersOpen = false" aria-hidden="true"></div>
+
+            <div class="fixed inset-y-0 right-0 max-w-sm w-full flex">
+                <div x-show="filtersOpen" 
+                     x-transition:enter="transform transition ease-out duration-300 sm:duration-500" 
+                     x-transition:enter-start="translate-x-full" 
+                     x-transition:enter-end="translate-x-0" 
+                     x-transition:leave="transform transition ease-in duration-300 sm:duration-500" 
+                     x-transition:leave-start="translate-x-0" 
+                     x-transition:leave-end="translate-x-full" 
+                     class="w-full bg-surface shadow-2xl flex flex-col h-full border-l border-gray-200">
+                    
+                    <div class="px-6 py-5 border-b border-gray-200 flex items-center justify-between">
+                        <h2 class="text-lg font-medium text-gray-900" id="slide-over-title">Advanced Filters</h2>
+                        <button @click="filtersOpen = false" class="text-gray-400 hover:text-gray-500">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="flex-1 overflow-y-auto px-6 py-6">
+                        <form method="get" hx-get="{% url 'patients:list' %}" hx-target="#patient-table-body" hx-trigger="change" id="advanced-filter-form" class="space-y-6">
+                            <input type="hidden" name="q" value="{{ request.GET.q }}">
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Practice</label>
+                                <select name="practice" class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-accent focus:border-accent sm:text-sm py-2 px-3 border">
+                                    <option value="">All Practices</option>
+                                    {% for p in practices %}
+                                        <option value="{{ p.id }}" {% if request.GET.practice == p.id|stringformat:"s" %}selected{% endif %}>{{ p.practice_name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <div class="border-t border-gray-200 px-6 py-4 flex gap-3 bg-gray-50">
+                        <a href="{% url 'patients:list' %}" class="flex-1 px-4 py-2 text-center text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 transition-colors">Clear All</a>
+                        <button @click="filtersOpen = false" class="flex-1 px-4 py-2 text-center text-sm font-medium text-white bg-gray-900 border border-transparent rounded-md shadow-sm hover:bg-gray-800 transition-colors">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
-
-<div class="table-responsive">
-    <table class="table table-striped table-hover">
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>ID Number</th>
-                <th>Scheme</th>
-                <th>Phone</th>
-                <th>Practice</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody id="patient-table-body">
-            {% include 'patients/patient_list_partial.html' %}
-        </tbody>
-    </table>
-</div>
-
-{% include 'pagination.html' %}
 {% endblock %}

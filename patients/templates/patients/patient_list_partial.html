@@ -1,23 +1,26 @@
 {% for patient in patients %}
-<tr>
-    <td>{{ patient.full_name }}</td>
-    <td>{{ patient.id_number }}</td>
-    <td>
+<tr class="hover:bg-gray-50 transition-colors group">
+    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ patient.full_name }}</td>
+    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-mono">{{ patient.id_number }}</td>
+    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
         {% if patient.active_scheme %}
             {{ patient.active_scheme.scheme_name }}
         {% else %}
-            <span class="text-muted">None</span>
+            <span class="text-gray-400">None</span>
         {% endif %}
     </td>
-    <td>{{ patient.phone }}</td>
-    <td>{{ patient.practice.practice_name }}</td>
-    <td>
-        <a href="{% url 'patients:detail' patient.pk %}" class="btn btn-sm btn-info">View</a>
-        <a href="{% url 'patients:update' patient.pk %}" class="btn btn-sm btn-warning">Edit</a>
+    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ patient.phone }}</td>
+    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ patient.practice.practice_name }}</td>
+    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+        <a href="{% url 'patients:detail' patient.pk %}" class="text-accent hover:text-blue-800 mr-3">View</a>
+        <a href="{% url 'patients:update' patient.pk %}" class="text-gray-500 hover:text-gray-700">Edit</a>
     </td>
 </tr>
 {% empty %}
 <tr>
-    <td colspan="6" class="text-center">No patients found.</td>
+    <td colspan="6" class="px-6 py-12 text-center text-gray-500 text-sm">
+        <i class="bi bi-people text-3xl mb-3 block text-gray-300"></i>
+        No patients found.
+    </td>
 </tr>
 {% endfor %}
