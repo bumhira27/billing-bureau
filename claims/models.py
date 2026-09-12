@@ -162,3 +162,55 @@ class RpaSubmissionLog(TimeStampedModel):
     def __str__(self):
         return f"RPA {self.portal_name} on Claim {self.claim_id} - {'Success' if self.success else 'Failed'}"
 
+
+class EdiTransmissionLog(TimeStampedModel):
+    STATUS_CHOICES = [
+        ('queued', 'Queued for Batching'),
+        ('transmitted', 'Transmitted to Switch'),
+        ('accepted', 'Accepted by Clearinghouse'),
+        ('rejected', 'Rejected by Clearinghouse'),
+        ('failed', 'Transmission Failed'),
+    ]
+
+    SWITCH_CHOICES = [
+        ('mediswitch', 'MediSwitch'),
+        ('healthbridge', 'Healthbridge'),
+        ('medikredit', 'MediKredit'),
+        ('other', 'Other'),
+    ]
+
+    claim = models.ForeignKey(Claim, on_delete=models.CASCADE, related_name='edi_transmissions', null=True, blank=True)
+    batch_reference = models.CharField(max_length=100, db_index=True)
+    switch_provider = models.CharField(max_length=50, choices=SWITCH_CHOICES, default='mediswitch')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='transmitted')
+    edi_payload = models.TextField(blank=True, help_text="Raw Medclaim EDI file content")
+    response_payload = models.TextField(blank=True, help_text="Raw Switch ACK/NAK response")
+    error_details = models.TextField(blank=True)
+    transmission_timestamp = models.DateTimeField(auto_now_add=True)
+    claims_count = models.PositiveIntegerField(default=1)
+    total_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'EDI Transmission Log'
+        verbose_name_plural = 'EDI Transmission Logs'
+
+    def __str__(self):
+        return f"{self.batch_reference} [{self.get_switch_provider_display()}] - {self.get_status_display()}"
+
+    @property
+    def portal_name(self):
+        return self.get_switch_provider_display()
+
+    @property
+    def reference_number(self):
+        return self.batch_reference
+
+    @property
+    def success(self):
+        return self.status == 'accepted'
+
+    @property
+    def message(self):
+        return self.error_details or f"Status: {self.get_status_display()}"
+

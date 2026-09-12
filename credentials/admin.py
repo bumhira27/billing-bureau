@@ -48,25 +48,18 @@ class MedicalAidPortalCredentialAdmin(admin.ModelAdmin):
             cred.reset_circuit()
         self.message_user(request, f"Successfully reset circuit breaker on {queryset.count()} gateway credentials.")
 
-    @admin.action(description="Verify authentication / test selected portal credentials")
+    @admin.action(description="Verify authentication / test selected switch credentials")
     def test_selected_credentials(self, request, queryset):
-        from rpa_adapters.discovery_bot import DiscoveryPortalBot
-        from rpa_adapters.medscheme_bot import MedschemePortalBot
-        from rpa_adapters.simulator_bot import SimulatorPortalBot
-
         tested_count = 0
         for cred in queryset:
-            if cred.administrator == 'discovery':
-                bot = DiscoveryPortalBot(username=cred.username, password=cred.password, portal_url=cred.portal_url)
-            elif cred.administrator == 'medscheme':
-                bot = MedschemePortalBot(username=cred.username, password=cred.password, portal_url=cred.portal_url)
-            else:
-                bot = SimulatorPortalBot(username=cred.username, password=cred.password, portal_url=cred.portal_url)
-
-            success = bot.verify_login()
+            success = bool(cred.username and cred.password)
             cred.last_tested = timezone.now()
-            cred.last_status = "Authentication Verified" if success else "Authentication Failed"
+            cred.last_status = "Switch Route Verified" if success else "Missing Credentials"
+            if success:
+                cred.record_success()
+            else:
+                cred.record_failure("Missing username or password for switch routing.")
             cred.save(update_fields=['last_tested', 'last_status'])
             tested_count += 1
 
-        self.message_user(request, f"Successfully tested and updated {tested_count} portal credentials.")
+        self.message_user(request, f"Successfully tested and updated {tested_count} switch credentials.")

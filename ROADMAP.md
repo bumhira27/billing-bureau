@@ -17,12 +17,14 @@ This document tracks the long-term strategic goals, legal requirements, and tech
 - [x] Dynamic sidebar redaction (Bureau-only links hidden for PracticeUsers)
 - [x] Test suite updated for MFA-aware sessions
 
-## Phase 3: Production Hardening & EDI Integration (Up Next)
-- [ ] Replace RPA web-scraping with BHF-accredited Medclaim EDI switch integration
-- [ ] SFTP polling for inbound eRA files from MediSwitch/Healthbridge
-- [ ] Frontend cleanup: remaining Bootstrap artifacts migrated to Tailwind
-- [ ] Login page redesign using Tailwind (currently still uses Bootstrap classes)
-- [ ] Cloud hosting & data sovereignty (AWS Cape Town or Azure Johannesburg)
+## Phase 3: Production Hardening & EDI Integration (In Progress)
+- [x] Replace RPA web-scraping with BHF-accredited Medclaim EDI switch integration
+- [x] Frontend cleanup: complete Bootstrap eradication and Tailwind CSS migration across 30+ templates
+- [x] Login page redesign using Tailwind CSS and custom spring animations
+- [x] Medclaim EDI Flat-File batch generation, validation, and staging
+- [x] Clearinghouse Level 1 ACK/NAK response parsing and audit logging (`EdiTransmissionLog`)
+- [ ] SFTP polling for inbound eRA files from MediSwitch/Healthbridge clearinghouse
+- [ ] Cloud hosting & data sovereignty deployment (AWS Cape Town or Azure Johannesburg)
 
 ## Phase 4: Legal & Commercial Structuring (Pre-Launch)
 - [ ] POPIA "Operator" Agreement template between Bureau and medical practices

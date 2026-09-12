@@ -73,6 +73,7 @@ class ClaimDetailView(LoginRequiredMixin, RBACQuerySetMixin, DetailView):
         context['users'] = User.objects.all()
         context['notes'] = self.object.claim_notes.all()
         context['rpa_logs'] = self.object.rpa_submissions.all()
+        context['edi_logs'] = self.object.edi_transmissions.all()
         return context
 
 class ClaimCreateView(LoginRequiredMixin, CreateView):
@@ -150,15 +151,22 @@ def claim_submit(request, pk):
 
 @require_POST
 @login_required
-def claim_rpa_submit(request, pk):
+def claim_edi_submit(request, pk):
     claim = get_object_or_404(Claim, pk=pk)
-    from .tasks import submit_claim_rpa
-    res = submit_claim_rpa(claim.id)
+    from .tasks import batch_claims_edi
+    res = batch_claims_edi(claim_id=claim.id)
     if res.get('success'):
-        messages.success(request, f"Direct Portal Submission Successful! Reference: {res.get('reference_number')} on {res.get('portal')} (Duration: {res.get('execution_time')}s).")
+        messages.success(
+            request,
+            f"Medclaim EDI submission processed. Batch Ref: {res.get('batch_reference')} (Status: {res.get('status', 'ACCEPTED').upper()})."
+        )
     else:
-        messages.warning(request, f"Portal submission result: {res.get('error', 'Check audit logs')}")
+        messages.warning(request, f"EDI submission failed: {res.get('message', 'Check pre-scrubbing rules.')}")
     return redirect('claims:detail', pk=pk)
+
+
+# Backward compatibility alias
+claim_rpa_submit = claim_edi_submit
 
 @require_POST
 @login_required
@@ -376,19 +384,24 @@ class ReviewExtractedClaimView(LoginRequiredMixin, UpdateView):
 
 
 from django.views.generic import ListView
-from .models import RpaSubmissionLog
+from .models import EdiTransmissionLog, RpaSubmissionLog
 
-class RpaLogListView(LoginRequiredMixin, RBACQuerySetMixin, ListView):
-    model = RpaSubmissionLog
+class EdiLogListView(LoginRequiredMixin, RBACQuerySetMixin, ListView):
+    model = EdiTransmissionLog
     template_name = 'claims/rpa_logs.html'
     context_object_name = 'logs'
     paginate_by = 50
 
     def get_queryset(self):
-        return RpaSubmissionLog.objects.select_related('claim').order_by('-created_at')
+        qs = EdiTransmissionLog.objects.select_related('claim', 'claim__practice', 'claim__patient').order_by('-created_at')
+        if not qs.exists():
+            return RpaSubmissionLog.objects.select_related('claim').order_by('-created_at')
+        return qs
 
     def get_template_names(self):
         if self.request.htmx:
             return ['claims/partials/rpa_logs_table.html']
         return [self.template_name]
+
+RpaLogListView = EdiLogListView
 

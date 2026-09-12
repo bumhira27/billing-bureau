@@ -5,10 +5,10 @@
                 <tr class="bg-gray-50 border-b border-gray-200">
                     <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Date / Time</th>
                     <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Claim ID</th>
-                    <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Target Provider</th>
+                    <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Clearinghouse</th>
                     <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-                    <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Reference #</th>
-                    <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Message</th>
+                    <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Batch Reference</th>
+                    <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Transmission Status / Errors</th>
                     <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Action</th>
                 </tr>
             </thead>
@@ -23,46 +23,52 @@
                         <span class="text-gray-400">-</span>
                         {% endif %}
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ log.portal_name|default:"Unknown" }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-700 uppercase">{{ log.switch_provider|default:log.portal_name|default:"MediSwitch" }}</td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                        {% if log.success %}
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                Success
+                        {% if log.status == 'accepted' or log.success %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-800">
+                                Accepted (ACK)
+                            </span>
+                        {% elif log.status == 'transmitted' %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
+                                Transmitted
                             </span>
                         {% else %}
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                Failed
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-800">
+                                Failed / Rejected
                             </span>
                         {% endif %}
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-600">{{ log.reference_number|default:"-" }}</td>
-                    <td class="px-6 py-4 text-sm text-gray-500 max-w-xs truncate" title="{{ log.message }}">{{ log.message }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-mono font-bold text-accent">{{ log.batch_reference|default:log.reference_number|default:"-" }}</td>
+                    <td class="px-6 py-4 text-sm text-gray-500 max-w-xs truncate" title="{{ log.error_details|default:log.message }}">{{ log.error_details|default:log.message|default:"Transmitted to switch queue" }}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        {% if log.screenshot_base64 %}
+                        {% if log.edi_payload %}
                             <div x-data="{ open: false }">
-                                <button @click="open = true" class="text-accent hover:text-blue-800 transition-colors">
-                                    View Proof
+                                <button type="button" @click="open = true" class="text-accent hover:text-blue-800 transition-colors font-medium">
+                                    Inspect EDI
                                 </button>
 
                                 <!-- Modal -->
-                                <div x-show="open" style="display: none;" class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+                                <div x-show="open" style="display: none;" class="fixed inset-0 z-50 overflow-y-auto" role="dialog" aria-modal="true">
                                     <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-                                        <!-- Background overlay -->
-                                        <div x-show="open" x-transition.opacity class="fixed inset-0 bg-gray-900 bg-opacity-75 transition-opacity" @click="open = false" aria-hidden="true"></div>
-                                        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+                                        <div x-show="open" x-transition.opacity class="fixed inset-0 bg-gray-900 bg-opacity-75 transition-opacity" @click="open = false"></div>
+                                        <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
                                         
-                                        <!-- Modal panel -->
-                                        <div x-show="open" class="modal-spring inline-block align-bottom bg-surface rounded-xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-5xl sm:w-full">
-                                            <div class="bg-surface px-4 pt-5 pb-4 sm:p-6 sm:pb-4 border-b border-gray-200 flex justify-between items-center">
-                                                <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">
-                                                    Transmission Proof - {{ log.created_at|date:"Y-m-d H:i" }}
+                                        <div x-show="open" class="inline-block align-bottom bg-surface rounded-xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
+                                            <div class="bg-surface px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                                                <h3 class="text-base font-semibold text-gray-900">
+                                                    Medclaim EDI Payload - {{ log.batch_reference }}
                                                 </h3>
-                                                <button @click="open = false" class="text-gray-400 hover:text-gray-500">
+                                                <button type="button" @click="open = false" class="text-gray-400 hover:text-gray-600">
                                                     <i class="bi bi-x-lg"></i>
                                                 </button>
                                             </div>
-                                            <div class="bg-gray-50 p-4 text-center">
-                                                <img src="data:image/png;base64,{{ log.screenshot_base64 }}" class="mx-auto rounded border border-gray-200 shadow-sm" alt="Bot Screenshot">
+                                            <div class="bg-gray-900 p-6 text-left font-mono text-xs text-gray-100 overflow-x-auto max-h-96">
+                                                <pre>{{ log.edi_payload }}</pre>
+                                            </div>
+                                            <div class="px-6 py-3 bg-gray-50 border-t border-gray-200 flex justify-between items-center">
+                                                <span class="text-xs text-gray-500">Target: {{ log.switch_provider|default:log.portal_name|upper }}</span>
+                                                <button type="button" @click="open = false" class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-3 py-1.5 rounded-md text-xs font-medium">Close</button>
                                             </div>
                                         </div>
                                     </div>

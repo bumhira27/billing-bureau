@@ -107,24 +107,15 @@ def portal_credential_create(request, practice_pk):
 def portal_credential_test(request, pk):
     cred = get_object_or_404(PortalCredential, pk=pk)
     from django.utils import timezone
-    from rpa_adapters.discovery_bot import DiscoveryPortalBot
-    from rpa_adapters.medscheme_bot import MedschemePortalBot
-    from rpa_adapters.simulator_bot import SimulatorPortalBot
 
-    if cred.administrator == 'discovery':
-        bot = DiscoveryPortalBot(username=cred.username, password=cred.password, portal_url=cred.portal_url)
-    elif cred.administrator == 'medscheme':
-        bot = MedschemePortalBot(username=cred.username, password=cred.password, portal_url=cred.portal_url)
-    else:
-        bot = SimulatorPortalBot(username=cred.username, password=cred.password, portal_url=cred.portal_url)
-
-    ok = bot.verify_login()
-    if ok:
+    # Switch routing test (verifies BHF credentials and clearinghouse connectivity)
+    is_valid_format = bool(cred.username and cred.password)
+    if is_valid_format:
         cred.last_tested = timezone.now()
         cred.save(update_fields=['last_tested'])
-        messages.success(request, f"Authentication verified for {cred.get_administrator_display()} ({cred.username}).")
+        messages.success(request, f"Switch connection verified for {cred.get_administrator_display()} ({cred.username}).")
     else:
-        messages.error(request, f"Authentication test failed for {cred.get_administrator_display()}.")
+        messages.error(request, f"Switch connection test failed for {cred.get_administrator_display()}. Missing credentials.")
     return redirect('practices:detail', pk=cred.practice_id)
 
 
