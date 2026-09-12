@@ -373,3 +373,16 @@ class ReviewExtractedClaimView(LoginRequiredMixin, UpdateView):
         else:
             return self.form_invalid(form)
 
+
+from django.views.generic import ListView
+from .models import RpaSubmissionLog
+
+class RpaLogListView(LoginRequiredMixin, ListView):
+    model = RpaSubmissionLog
+    template_name = 'claims/rpa_logs.html'
+    context_object_name = 'logs'
+    paginate_by = 50
+
+    def get_queryset(self):
+        return RpaSubmissionLog.objects.select_related('claim', 'credential').order_by('-created_at')
+

@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}Bureau Financials{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Bureau Financials & Collections</h1>
+</div>
+
+<ul class="nav nav-tabs mb-4" id="financialTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="invoices-tab" data-bs-toggle="tab" data-bs-target="#invoices" type="button" role="tab">Bureau Invoices (Commission)</button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="statements-tab" data-bs-toggle="tab" data-bs-target="#statements" type="button" role="tab">Patient Statements (Shortfalls)</button>
+    </li>
+</ul>
+
+<div class="tab-content" id="financialTabsContent">
+    <!-- Tab 1: Bureau Invoices -->
+    <div class="tab-pane fade show active" id="invoices" role="tabpanel">
+        <div class="table-responsive">
+            <table class="table table-striped table-sm align-middle">
+                <thead>
+                    <tr>
+                        <th>Practice</th>
+                        <th>Billing Period</th>
+                        <th>Collections Processed</th>
+                        <th>Commission Rate</th>
+                        <th>Invoice Total (Fee)</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for invoice in bureau_invoices %}
+                    <tr>
+                        <td>{{ invoice.practice.practice_name }}</td>
+                        <td>{{ invoice.billing_period_start|date:"M j, Y" }} - {{ invoice.billing_period_end|date:"M j, Y" }}</td>
+                        <td>R {{ invoice.total_collections_processed }}</td>
+                        <td>{{ invoice.commission_rate }}%</td>
+                        <td class="fw-bold">R {{ invoice.invoice_total }}</td>
+                        <td>
+                            {% if invoice.status == 'draft' %}
+                                <span class="badge bg-secondary">Draft</span>
+                            {% elif invoice.status == 'issued' %}
+                                <span class="badge bg-primary">Issued</span>
+                            {% elif invoice.status == 'paid' %}
+                                <span class="badge bg-success">Paid</span>
+                            {% else %}
+                                <span class="badge bg-danger">{{ invoice.status|title }}</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-4 text-muted">No Bureau Invoices generated yet.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Tab 2: Patient Statements -->
+    <div class="tab-pane fade" id="statements" role="tabpanel">
+        <div class="table-responsive">
+            <table class="table table-striped table-sm align-middle">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Patient Name</th>
+                        <th>Practice</th>
+                        <th>Outstanding Amount</th>
+                        <th>Delivery Status</th>
+                        <th>Message Draft</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for stmt in patient_statements %}
+                    <tr>
+                        <td>{{ stmt.statement_date|date:"Y-m-d" }}</td>
+                        <td>{{ stmt.patient.first_name }} {{ stmt.patient.last_name }}</td>
+                        <td>{{ stmt.practice.practice_name }}</td>
+                        <td class="fw-bold text-danger">R {{ stmt.total_outstanding }}</td>
+                        <td>
+                            {% if stmt.delivery_status == 'sent' or stmt.delivery_status == 'delivered' %}
+                                <span class="badge bg-success">{{ stmt.delivery_status|title }}</span>
+                            {% elif stmt.delivery_status == 'pending' %}
+                                <span class="badge bg-warning text-dark">Pending</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{{ stmt.delivery_status|title }}</span>
+                            {% endif %}
+                        </td>
+                        <td><small class="text-muted">{{ stmt.message_content }}</small></td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-4 text-muted">No Patient Statements generated yet.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

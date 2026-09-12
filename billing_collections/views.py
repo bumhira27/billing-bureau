@@ -155,6 +155,20 @@ def patient_balance_api(request):
             'date_of_service': c.date_of_service.isoformat() if c.date_of_service else None,
             'outstanding': f"{round(float(c.outstanding), 2):.2f}"
         })
-        total += c.outstanding
-        
     return JsonResponse({'total_outstanding': f"{round(float(total), 2):.2f}", 'claims': data})
+
+from .models import BureauInvoice
+
+class FinancialDashboardView(LoginRequiredMixin, TemplateView):
+    template_name = 'billing_collections/financials.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # Invoices for the bureau
+        context['bureau_invoices'] = BureauInvoice.objects.select_related('practice').order_by('-billing_period_end')
+        
+        # Statements for patients
+        context['patient_statements'] = PatientStatement.objects.select_related('patient', 'practice').order_by('-statement_date')
+        
+        return context

@@ -12,8 +12,8 @@ urlpatterns = [
     path('<int:pk>/rpa_submit/', views.claim_rpa_submit, name='rpa_submit'),
     path('<int:pk>/assign/', views.claim_assign, name='assign'),
     path('<int:pk>/add_note/', views.claim_add_note, name='add_note'),
+    path('rpa-logs/', views.RpaLogListView.as_view(), name='rpa_logs'),
     path('batch/', views.BatchCaptureView.as_view(), name='batch_capture'),
     path('upload-note/', views.UploadNoteView.as_view(), name='upload_note'),
     path('review-extracted/<int:pk>/', views.ReviewExtractedClaimView.as_view(), name='review_extracted'),
 ]
-
