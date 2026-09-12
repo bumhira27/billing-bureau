@@ -1,0 +1,14 @@
+Django==5.1
+psycopg2-binary==2.9.9
+celery==5.4.0
+redis==5.0.8
+django-htmx==1.19.0
+django-crispy-forms==2.3
+crispy-bootstrap5==2024.2
+Pillow==10.4.0
+python-dateutil==2.9.0
+openpyxl==3.1.5
+gunicorn==22.0.0
+whitenoise==6.7.0
+django-environ==0.11.2
+django-auditlog==3.0.0

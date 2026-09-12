@@ -1,0 +1,73 @@
+<nav id="sidebar" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse" style="padding-top: 56px; min-height: 100vh;">
+    <div class="position-sticky pt-3">
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link {% if request.resolver_match.app_name == 'dashboard' %}active{% endif %}" href="{% url 'dashboard:index' %}">
+                    <i class="bi bi-speedometer2"></i> Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.resolver_match.app_name == 'practices' %}active{% endif %}" href="{% url 'practices:list' %}">
+                    <i class="bi bi-building"></i> Practices
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.resolver_match.app_name == 'claims' and request.resolver_match.url_name != 'upload_note' %}active{% endif %}" href="{% url 'claims:list' %}">
+                    <i class="bi bi-file-earmark-medical"></i> Claims
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.resolver_match.url_name == 'upload_note' %}active{% endif %}" href="{% url 'claims:upload_note' %}">
+                    <i class="bi bi-camera"></i> AI Note Capture
+                </a>
+            </li>
+        </ul>
+
+        <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted text-uppercase">
+            <span>Financials</span>
+        </h6>
+        <ul class="nav flex-column mb-2">
+            <li class="nav-item">
+                <a class="nav-link {% if request.resolver_match.app_name == 'reconciliation' %}active{% endif %}" href="{% url 'reconciliation:dashboard' %}">
+                    <i class="bi bi-arrow-left-right"></i> Reconciliation
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.resolver_match.app_name == 'billing_collections' %}active{% endif %}" href="{% url 'billing_collections:overview' %}">
+                    <i class="bi bi-cash-stack"></i> Collections
+                </a>
+            </li>
+        </ul>
+
+        <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted text-uppercase">
+            <span>Admin</span>
+        </h6>
+        <ul class="nav flex-column mb-2">
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'admin:index' %}">
+                    <i class="bi bi-gear"></i> Admin Panel
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/admin/credentials/medicalaidportalcredential/">
+                    <i class="bi bi-key"></i> Portal Credentials
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.resolver_match.app_name == 'bureau' and request.resolver_match.url_name == 'profile_update' %}active{% endif %}" href="{% url 'bureau:profile_update' %}">
+                    <i class="bi bi-gear-wide-connected"></i> Bureau Settings
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.resolver_match.app_name == 'bureau' and request.resolver_match.url_name == 'invoice_list' %}active{% endif %}" href="{% url 'bureau:invoice_list' %}">
+                    <i class="bi bi-receipt"></i> Bureau Invoices
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.resolver_match.app_name == 'reference_data' and request.resolver_match.url_name == 'rejection_list' %}active{% endif %}" href="{% url 'reference_data:rejection_list' %}">
+                    <i class="bi bi-shield-slash"></i> Rejection Codes
+                </a>
+            </li>
+        </ul>
+    </div>
+</nav>

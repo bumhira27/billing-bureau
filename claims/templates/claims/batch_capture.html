@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Batch Capture Claims</h1>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+
+<div x-data="batchCapture()" class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered table-sm">
+                <thead>
+                    <tr>
+                        <th>Date of Service</th>
+                        <th>Patient ID</th>
+                        <th>Tariff Code</th>
+                        <th>ICD-10</th>
+                        <th>Quantity</th>
+                        <th>Billed Amount</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <template x-for="(row, index) in rows" :key="index">
+                        <tr>
+                            <td><input type="date" x-model="row.service_date" class="form-control form-control-sm"></td>
+                            <td><input type="number" x-model="row.patient_id" class="form-control form-control-sm" placeholder="Patient ID"></td>
+                            <td><input type="text" x-model="row.tariff_code" class="form-control form-control-sm" placeholder="Tariff Code"></td>
+                            <td><input type="text" x-model="row.icd10" class="form-control form-control-sm" placeholder="ICD-10"></td>
+                            <td><input type="number" x-model="row.quantity" class="form-control form-control-sm" value="1"></td>
+                            <td><input type="number" step="0.01" x-model="row.billed_amount" class="form-control form-control-sm" placeholder="0.00" @keydown.enter.prevent="addRow(index)"></td>
+                            <td><button class="btn btn-sm btn-danger" @click="removeRow(index)" x-show="rows.length > 1">Remove</button></td>
+                        </tr>
+                    </template>
+                </tbody>
+            </table>
+        </div>
+        <button class="btn btn-secondary btn-sm mb-3" @click="addRow(-1)">+ Add Row</button>
+        <button class="btn btn-primary btn-sm mb-3 float-end" @click="submit" :disabled="isSubmitting">
+            <span x-show="!isSubmitting">Submit Batch</span>
+            <span x-show="isSubmitting">Submitting...</span>
+        </button>
+        
+        <div x-show="message" class="alert alert-success mt-2" x-text="message"></div>
+        <div x-show="error" class="alert alert-danger mt-2" x-text="error"></div>
+    </div>
+</div>
+
+<script>
+function batchCapture() {
+    return {
+        rows: [
+            {service_date: '', patient_id: '', tariff_code: '', icd10: '', quantity: 1, billed_amount: ''}
+        ],
+        isSubmitting: false,
+        message: '',
+        error: '',
+        addRow(index) {
+            this.rows.splice(index + 1, 0, {service_date: '', patient_id: '', tariff_code: '', icd10: '', quantity: 1, billed_amount: ''});
+            // Let Alpine update the DOM, then focus on the new row's first input (date of service)
+            this.$nextTick(() => {
+                const trs = document.querySelectorAll('tbody tr');
+                if (trs.length > index + 1) {
+                    const inputs = trs[index + 1].querySelectorAll('input');
+                    if(inputs.length > 0) inputs[0].focus();
+                }
+            });
+        },
+        removeRow(index) {
+            this.rows.splice(index, 1);
+        },
+        async submit() {
+            this.isSubmitting = true;
+            this.message = '';
+            this.error = '';
+            try {
+                const response = await fetch("{% url 'claims:batch_capture' %}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify({rows: this.rows})
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    this.message = data.message;
+                    this.rows = [{service_date: '', patient_id: '', tariff_code: '', icd10: '', quantity: 1, billed_amount: ''}];
+                } else {
+                    this.error = data.error || 'An error occurred';
+                }
+            } catch (err) {
+                this.error = err.message;
+            } finally {
+                this.isSubmitting = false;
+            }
+        }
+    }
+}
+</script>
+{% endblock %}

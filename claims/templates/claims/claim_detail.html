@@ -1,0 +1,331 @@
+{% extends 'base.html' %}
+{% load currency_tags %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Claim #{{ claim.id }}</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{% url 'claims:update' claim.id %}" class="btn btn-sm btn-outline-secondary me-2">Edit</a>
+        {% if claim.claim_status == 'draft' %}
+            <form method="post" action="{% url 'claims:rpa_submit' claim.id %}" class="d-inline me-2">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-success">
+                    <i class="bi bi-robot me-1"></i> Submit via Scheme Portal (RPA)
+                </button>
+            </form>
+            <form method="post" action="{% url 'claims:submit' claim.id %}" class="d-inline">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-outline-primary">Submit Standard</button>
+            </form>
+        {% elif claim.claim_status == 'submitted' or claim.claim_status == 'rejected' %}
+            <form method="post" action="{% url 'claims:rpa_submit' claim.id %}" class="d-inline">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-outline-success">
+                    <i class="bi bi-arrow-repeat me-1"></i> Resubmit via Scheme Portal (RPA)
+                </button>
+            </form>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Claim Information</span>
+                <span>
+                    {% if claim.claim_status == 'draft' %}
+                        <span class="badge bg-secondary">Draft</span>
+                    {% elif claim.claim_status == 'submitted' %}
+                        <span class="badge bg-info">Submitted</span>
+                    {% elif claim.claim_status == 'accepted' %}
+                        <span class="badge bg-primary">Accepted</span>
+                    {% elif claim.claim_status == 'rejected' %}
+                        <span class="badge bg-danger">Rejected</span>
+                    {% elif claim.claim_status == 'paid' %}
+                        <span class="badge bg-success">Paid in Full</span>
+                    {% elif claim.claim_status == 'partially_paid' %}
+                        <span class="badge bg-warning text-dark">Partially Paid</span>
+                    {% elif claim.claim_status == 'appealed' %}
+                        <span class="badge bg-dark">Under Appeal</span>
+                    {% elif claim.claim_status == 'written_off' %}
+                        <span class="badge bg-secondary">Written Off</span>
+                    {% endif %}
+                </span>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Patient:</strong> <a href="#">{{ claim.patient }}</a></p>
+                        <p><strong>Practice:</strong> {{ claim.practice }}</p>
+                        <p><strong>Date of Service:</strong> {{ claim.date_of_service }}</p>
+                        <p><strong>Source Type:</strong> {{ claim.get_source_type_display }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Referring Doctor:</strong> {{ claim.referring_doctor_name }} {% if claim.referring_doctor_bhf %}({{ claim.referring_doctor_bhf }}){% endif %}</p>
+                        <p><strong>Authorization Number:</strong> {{ claim.authorization_number|default:"None" }}</p>
+                        <p><strong>Switch / Portal Ref:</strong> 
+                            {% if claim.switch_reference_number %}
+                                <span class="font-monospace fw-bold">{{ claim.switch_reference_number }}</span>
+                                {% if "DIR-" in claim.switch_reference_number %}
+                                    <span class="badge bg-success ms-1">Direct Portal (R0 Switch Fee)</span>
+                                {% endif %}
+                            {% else %}
+                                <span class="text-muted">Not submitted</span>
+                            {% endif %}
+                        </p>
+                        <p><strong>Notes:</strong> {{ claim.notes|default:"None" }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">Source File</div>
+            <div class="card-body text-center">
+                {% if claim.source_file %}
+                    <a href="{{ claim.source_file.url }}" target="_blank">
+                        <img src="{{ claim.source_file.url }}" alt="Source File" class="img-thumbnail" style="max-height: 150px;">
+                    </a>
+                {% else %}
+                    <p class="text-muted">No source file attached.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<h3 class="mb-3">Line Items</h3>
+<div class="table-responsive mb-4">
+    <table class="table table-bordered table-striped">
+        <thead class="table-light">
+            <tr>
+                <th>Tariff Code</th>
+                <th>Description</th>
+                <th>ICD-10 (Pri/Sec)</th>
+                <th>Qty</th>
+                <th>Amount Billed</th>
+                <th>Amount Paid</th>
+                <th>Patient Liable</th>
+                <th>Status</th>
+                <th>Rejection Code</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in line_items %}
+            <tr>
+                <td>{{ item.tariff_code }}</td>
+                <td>{{ item.tariff_description }}</td>
+                <td>{{ item.icd10_primary }}{% if item.icd10_secondary %} / {{ item.icd10_secondary }}{% endif %}</td>
+                <td>{{ item.quantity }}</td>
+                <td class="text-end">{{ item.amount_billed|rands }}</td>
+                <td class="text-end text-success">{{ item.amount_paid|rands }}</td>
+                <td class="text-end">{{ item.amount_patient_liable|rands }}</td>
+                <td>
+                    {% if item.line_status == 'pending' %}
+                        <span class="badge bg-secondary">Pending</span>
+                    {% elif item.line_status == 'paid' %}
+                        <span class="badge bg-success">Paid in Full</span>
+                    {% elif item.line_status == 'short_paid' %}
+                        <span class="badge bg-warning text-dark">Short Paid</span>
+                    {% elif item.line_status == 'rejected' %}
+                        <span class="badge bg-danger">Rejected</span>
+                    {% elif item.line_status == 'appealed' %}
+                        <span class="badge bg-dark">Under Appeal</span>
+                    {% endif %}
+                </td>
+                <td>{{ item.rejection_code }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="9" class="text-center">No line items for this claim.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot class="table-group-divider">
+            <tr class="fw-bold">
+                <td colspan="4" class="text-end">Totals:</td>
+                <td class="text-end">{{ claim.total_billed|rands }}</td>
+                <td class="text-end text-success">{{ claim.total_paid|rands }}</td>
+                <td class="text-end">{{ claim.total_patient_liable|rands }}</td>
+                <td colspan="2"></td>
+            </tr>
+        </tfoot>
+    </table>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">Assignment & Priority</div>
+            <div class="card-body">
+                <form method="post" action="{% url 'claims:assign' claim.id %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">Assigned To</label>
+                        <select name="assigned_to" class="form-select form-select-sm">
+                            <option value="">-- Unassigned --</option>
+                            {% for user in users %}
+                                <option value="{{ user.id }}" {% if claim.assigned_to_id == user.id %}selected{% endif %}>{{ user.username }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Internal Priority</label>
+                        <select name="internal_priority" class="form-select form-select-sm">
+                            <option value="low" {% if claim.internal_priority == 'low' %}selected{% endif %}>Low</option>
+                            <option value="medium" {% if claim.internal_priority == 'medium' %}selected{% endif %}>Medium</option>
+                            <option value="high" {% if claim.internal_priority == 'high' %}selected{% endif %}>High</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-sm btn-primary">Update Assignment</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">Notes Timeline</div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <form method="post" action="{% url 'claims:add_note' claim.id %}">
+                        {% csrf_token %}
+                        <div class="input-group">
+                            <textarea name="text" class="form-control" rows="2" placeholder="Add a note..." required></textarea>
+                            <button class="btn btn-outline-secondary" type="submit">Add</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="list-group list-group-flush">
+                    {% for note in notes %}
+                    <div class="list-group-item px-0">
+                        <div class="d-flex w-100 justify-content-between">
+                            <small class="text-muted">{{ note.author.username }}</small>
+                            <small class="text-muted">{{ note.created_at|date:"M d, H:i" }}</small>
+                        </div>
+                        <p class="mb-1">{{ note.text|linebreaksbr }}</p>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted mb-0">No notes yet.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">Financial Summary</div>
+            <div class="card-body">
+                <table class="table table-sm borderless mb-0">
+                    <tr>
+                        <th>Total Billed:</th>
+                        <td class="text-end fw-semibold">{{ claim.total_billed|rands }}</td>
+                    </tr>
+                    <tr>
+                        <th>Total Paid:</th>
+                        <td class="text-end text-success fw-semibold">{{ claim.total_paid|rands }}</td>
+                    </tr>
+                    <tr>
+                        <th>Total Patient Liable:</th>
+                        <td class="text-end">{{ claim.total_patient_liable|rands }}</td>
+                    </tr>
+                    <tr class="fs-5 fw-bold border-top mt-2">
+                        <th>Outstanding Balance:</th>
+                        <td class="text-end {% if claim.outstanding_balance > 0 %}text-danger{% else %}text-muted{% endif %}">{{ claim.outstanding_balance|rands }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+                <span class="fw-bold"><i class="bi bi-robot me-2 text-primary"></i>Direct Scheme Portal Submissions (Switch Bypass RPA)</span>
+                {% if rpa_logs %}
+                    <span class="badge bg-secondary">{{ rpa_logs.count }} submission{{ rpa_logs.count|pluralize }}</span>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                {% if rpa_logs %}
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Timestamp</th>
+                                    <th>Administrator / Portal</th>
+                                    <th>Reference Number</th>
+                                    <th>Status</th>
+                                    <th>Duration</th>
+                                    <th>Response Message</th>
+                                    <th>Visual Proof</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for log in rpa_logs %}
+                                <tr>
+                                    <td class="small">{{ log.created_at|date:"Y-m-d H:i:s" }}</td>
+                                    <td class="fw-semibold">{{ log.portal_name }}</td>
+                                    <td>
+                                        {% if log.reference_number %}
+                                            <span class="font-monospace fw-bold text-primary">{{ log.reference_number }}</span>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if log.success %}
+                                            <span class="badge bg-success">Success</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Failed</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ log.execution_time_seconds }}s</td>
+                                    <td class="small text-muted">{{ log.message }}</td>
+                                    <td>
+                                        {% if log.screenshot %}
+                                            <button type="button" class="btn btn-xs btn-outline-primary py-0 px-2" data-bs-toggle="modal" data-bs-target="#screenshotModal{{ log.id }}">
+                                                <i class="bi bi-camera me-1"></i> View Proof
+                                            </button>
+
+                                            <!-- Screenshot Modal -->
+                                            <div class="modal fade" id="screenshotModal{{ log.id }}" tabindex="-1" aria-labelledby="screenshotModalLabel{{ log.id }}" aria-hidden="true">
+                                                <div class="modal-dialog modal-xl modal-dialog-centered">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header">
+                                                            <h5 class="modal-title" id="screenshotModalLabel{{ log.id }}">
+                                                                Portal Proof: {{ log.portal_name }} (Ref: {{ log.reference_number }})
+                                                            </h5>
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                        </div>
+                                                        <div class="modal-body text-center bg-light p-3">
+                                                            <img src="{{ log.screenshot.url }}" class="img-fluid rounded border shadow-sm" alt="Submission Proof Screenshot">
+                                                        </div>
+                                                        <div class="modal-footer d-flex justify-content-between">
+                                                            <span class="text-muted small">Submitted directly via headless browser on {{ log.created_at|date:"Y-m-d H:i:s" }} (Bypassed switch fees)</span>
+                                                            <a href="{{ log.screenshot.url }}" target="_blank" class="btn btn-sm btn-outline-secondary">Open Full Image</a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        {% else %}
+                                            <span class="text-muted small">No screenshot</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-muted small py-2">
+                        No direct scheme portal submissions have been recorded for this claim yet. Click <strong>Submit via Scheme Portal (RPA)</strong> to submit directly to the medical scheme administrator web gateway without commercial switch fees.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

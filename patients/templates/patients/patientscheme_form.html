@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<h2>Add Scheme for {{ view.kwargs.patient_id }}</h2>
+<div class="card">
+    <div class="card-body">
+        {% crispy form %}
+        <a href="{% url 'patients:detail' view.kwargs.patient_id %}" class="btn btn-secondary mt-3">Cancel</a>
+    </div>
+</div>
+{% endblock %}

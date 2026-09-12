@@ -1,0 +1,22 @@
+[
+  {"code": "01", "description": "Member not found on scheme", "category": "administrative", "suggested_action": "Verify membership number with the patient and resubmit"},
+  {"code": "02", "description": "Incorrect dependent code", "category": "administrative", "suggested_action": "Verify patient dependent code and resubmit"},
+  {"code": "03", "description": "Membership terminated", "category": "administrative", "suggested_action": "Contact patient to confirm current medical aid details"},
+  {"code": "04", "description": "Benefit exhausted", "category": "financial", "suggested_action": "Bill patient privately"},
+  {"code": "05", "description": "No pre-authorisation obtained", "category": "clinical", "suggested_action": "Contact scheme to confirm pre-auth requirements and resubmit with auth number"},
+  {"code": "06", "description": "Duplicate claim", "category": "administrative", "suggested_action": "Verify if payment was received, reverse one if needed"},
+  {"code": "07", "description": "Claim received after submission deadline", "category": "administrative", "suggested_action": "Motivate for late submission or write off"},
+  {"code": "08", "description": "Invalid tariff code", "category": "clinical", "suggested_action": "Review procedures performed and correct tariff code"},
+  {"code": "09", "description": "Invalid ICD-10 code", "category": "clinical", "suggested_action": "Review diagnosis and update ICD-10 code"},
+  {"code": "10", "description": "No referring doctor specified", "category": "administrative", "suggested_action": "Add referring doctor practice number and resubmit"},
+  {"code": "11", "description": "Tariff/diagnosis mismatch", "category": "clinical", "suggested_action": "Ensure ICD-10 supports the tariff code billed"},
+  {"code": "12", "description": "Amount exceeds scheme rate", "category": "financial", "suggested_action": "Bill patient for the shortfall"},
+  {"code": "13", "description": "Service not covered by option", "category": "financial", "suggested_action": "Bill patient privately for non-covered services"},
+  {"code": "14", "description": "Waiting period applies", "category": "financial", "suggested_action": "Bill patient privately as they are in a waiting period"},
+  {"code": "15", "description": "Late joiner penalty applied", "category": "financial", "suggested_action": "Bill patient for the penalty shortfall"},
+  {"code": "16", "description": "Co-payment applies", "category": "financial", "suggested_action": "Collect co-payment amount from patient"},
+  {"code": "17", "description": "PMB condition - covered from risk", "category": "pmb", "suggested_action": "Resubmit with PMB motivation and appropriate ICD-10"},
+  {"code": "18", "description": "Claim under investigation", "category": "other", "suggested_action": "Follow up with scheme in 14 days"},
+  {"code": "19", "description": "Provider not contracted", "category": "financial", "suggested_action": "Patient to pay in full and claim back from scheme"},
+  {"code": "20", "description": "Stale claim - older than 4 months", "category": "administrative", "suggested_action": "Write off or motivate if delayed by scheme"}
+]

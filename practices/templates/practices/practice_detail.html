@@ -1,0 +1,437 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <div>
+        <h1 class="h2 mb-0">{{ practice.practice_name }}</h1>
+        <div class="text-muted small">
+            BHF Practice No: <strong>{{ practice.bhf_practice_number }}</strong> | 
+            Treating Provider: <strong>{{ practice.owner_name }}</strong> (HPCSA: {{ practice.hpcsa_number }}) |
+            Bureau Commission: <span class="badge bg-info text-dark">{{ practice.fee_percentage }}%</span>
+        </div>
+    </div>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{% url 'patients:create' practice.pk %}" class="btn btn-sm btn-primary me-2">
+            <i class="bi bi-person-plus me-1"></i> Add Patient
+        </a>
+        <a href="{% url 'practices:update' practice.pk %}" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-pencil me-1"></i> Edit Practice
+        </a>
+    </div>
+</div>
+
+{% if practice.is_compliant %}
+    <div class="alert alert-success py-2 px-3 small d-flex align-items-center mb-4">
+        <i class="bi bi-shield-check fs-5 me-2"></i>
+        <span><strong>Compliance Status:</strong> Fully Compliant. POPIA and Service Level Agreements are active.</span>
+    </div>
+{% else %}
+    <div class="alert alert-warning py-2 px-3 small d-flex align-items-center mb-4">
+        <i class="bi bi-exclamation-triangle fs-5 me-2"></i>
+        <span><strong>Compliance Warning:</strong> Missing signed POPIA or Service Level Agreements. Please execute agreements with the practitioner.</span>
+    </div>
+{% endif %}
+
+<!-- Quick Stats Row -->
+<div class="row g-3 mb-4">
+    <div class="col-md-2 col-sm-6">
+        <div class="card shadow-sm border-0 text-center py-2 h-100">
+            <div class="card-body p-2">
+                <span class="text-muted small text-uppercase fw-semibold d-block mb-1">Total Claims</span>
+                <h4 class="mb-0 fw-bold">{{ total_claims_count }}</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2 col-sm-6">
+        <div class="card shadow-sm border-0 text-center py-2 h-100">
+            <div class="card-body p-2">
+                <span class="text-muted small text-uppercase fw-semibold d-block mb-1">Total Billed</span>
+                <h4 class="mb-0 fw-bold text-primary text-nowrap">{{ total_billed|rands }}</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2 col-sm-6">
+        <div class="card shadow-sm border-0 text-center py-2 h-100">
+            <div class="card-body p-2">
+                <span class="text-muted small text-uppercase fw-semibold d-block mb-1">Total Collected</span>
+                <h4 class="mb-0 fw-bold text-success text-nowrap">{{ total_collected|rands }}</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2 col-sm-6">
+        <div class="card shadow-sm border-0 text-center py-2 h-100">
+            <div class="card-body p-2">
+                <span class="text-muted small text-uppercase fw-semibold d-block mb-1">Outstanding</span>
+                <h4 class="mb-0 fw-bold text-nowrap {% if outstanding_balance > 0 %}text-danger{% else %}text-muted{% endif %}">
+                    {{ outstanding_balance|rands }}
+                </h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2 col-sm-6">
+        <div class="card shadow-sm border-0 text-center py-2 h-100">
+            <div class="card-body p-2">
+                <span class="text-muted small text-uppercase fw-semibold d-block mb-1">Collection Rate</span>
+                <h4 class="mb-0 fw-bold text-info text-nowrap">{{ collection_rate|percentage }}</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2 col-sm-6">
+        <div class="card shadow-sm border-0 text-center py-2 h-100 bg-light">
+            <div class="card-body p-2">
+                <span class="text-muted small text-uppercase fw-semibold d-block mb-1">Bureau Fee ({{ practice.fee_percentage }}%)</span>
+                <h4 class="mb-0 fw-bold text-dark text-nowrap">{{ bureau_fee_earned|rands }}</h4>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Left Column: Practice Overview & Details -->
+    <div class="col-lg-4">
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white py-3 fw-bold small text-uppercase">
+                <i class="bi bi-info-circle me-1"></i> Practice Details
+            </div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush small">
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span class="text-muted">Treating Doctor</span>
+                        <span class="fw-semibold">{{ practice.owner_name }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span class="text-muted">BHF Practice Number</span>
+                        <span class="fw-semibold font-monospace">{{ practice.bhf_practice_number }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span class="text-muted">HPCSA / SAMDC</span>
+                        <span class="fw-semibold">{{ practice.hpcsa_number }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span class="text-muted">Email</span>
+                        <a href="mailto:{{ practice.email }}">{{ practice.email }}</a>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span class="text-muted">Phone</span>
+                        <span>{{ practice.phone }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span class="text-muted">EDI Switch Provider</span>
+                        <span class="badge bg-secondary">{{ practice.get_switch_provider_display }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span class="text-muted">Commission Fee</span>
+                        <span class="fw-bold text-success">{{ practice.fee_percentage }}% of collections</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span class="text-muted">Banking</span>
+                        <span>{{ practice.bank_name|default:"Not specified" }}</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Tabs for Practice Patients & Recent Claims -->
+    <div class="col-lg-8">
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white p-2">
+                <ul class="nav nav-tabs card-header-tabs" id="practiceTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active fw-bold small text-uppercase" id="patients-tab" data-bs-toggle="tab" data-bs-target="#patients-pane" type="button" role="tab">
+                            <i class="bi bi-people me-1"></i> Practice Patients ({{ patients.count }})
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link fw-bold small text-uppercase" id="claims-tab" data-bs-toggle="tab" data-bs-target="#claims-pane" type="button" role="tab">
+                            <i class="bi bi-file-earmark-medical me-1"></i> Claims History ({{ total_claims_count }})
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link fw-bold small text-uppercase" id="credentials-tab" data-bs-toggle="tab" data-bs-target="#credentials-pane" type="button" role="tab">
+                            <i class="bi bi-robot me-1"></i> Direct Gateways (RPA)
+                        </button>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body p-0">
+                <div class="tab-content" id="practiceTabsContent">
+                    <!-- Patients Pane -->
+                    <div class="tab-pane fade show active" id="patients-pane" role="tabpanel">
+                        <div class="p-3 d-flex justify-content-between align-items-center border-bottom bg-light">
+                            <span class="small text-muted">Patients registered under <strong>{{ practice.practice_name }}</strong></span>
+                            <a href="{% url 'patients:create' practice.pk %}" class="btn btn-sm btn-primary">
+                                <i class="bi bi-person-plus me-1"></i> Add Patient
+                            </a>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0 small">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Patient Name</th>
+                                        <th>ID Number</th>
+                                        <th>Medical Scheme</th>
+                                        <th>Option / Plan</th>
+                                        <th>Membership No</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for pt in patients %}
+                                    <tr>
+                                        <td class="fw-bold">
+                                            <a href="{% url 'patients:detail' pt.pk %}" class="text-decoration-none">
+                                                {{ pt.full_name }}
+                                            </a>
+                                        </td>
+                                        <td>{{ pt.id_number|default:"-" }}</td>
+                                        <td>
+                                            {% if pt.active_scheme %}
+                                                <span class="badge bg-light text-dark border">{{ pt.active_scheme.scheme_name }}</span>
+                                            {% else %}
+                                                <span class="text-muted">Private / None</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ pt.active_scheme.scheme_option|default:"-" }}</td>
+                                        <td class="font-monospace">{{ pt.active_scheme.membership_number|default:"-" }}</td>
+                                        <td>
+                                            <a href="{% url 'patients:detail' pt.pk %}" class="btn btn-xs btn-outline-primary py-0 px-2">
+                                                View
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="6" class="text-center py-4 text-muted">
+                                            <i class="bi bi-people fs-2 d-block mb-1"></i>
+                                            No patients recorded for this practice yet.
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Claims Pane -->
+                    <div class="tab-pane fade" id="claims-pane" role="tabpanel">
+                        <div class="p-3 d-flex justify-content-between align-items-center border-bottom bg-light">
+                            <span class="small text-muted">Recent billing claims for <strong>{{ practice.practice_name }}</strong></span>
+                            <a href="{% url 'claims:create' %}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-plus-lg me-1"></i> New Claim
+                            </a>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0 small">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Invoice / Ref</th>
+                                        <th>Patient</th>
+                                        <th>Date</th>
+                                        <th>Status</th>
+                                        <th class="text-end">Billed</th>
+                                        <th class="text-end">Paid</th>
+                                        <th class="text-end">Outstanding</th>
+                                        <th class="text-center">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for c in recent_claims %}
+                                    <tr>
+                                        <td class="fw-bold font-monospace">
+                                            <a href="{% url 'claims:detail' c.pk %}" class="text-decoration-none">
+                                                {{ c.switch_reference_number|default:c.id }}
+                                            </a>
+                                        </td>
+                                        <td>{{ c.patient.full_name }}</td>
+                                        <td>{{ c.date_of_service|date:"Y-m-d" }}</td>
+                                        <td>
+                                            {% if c.claim_status == 'paid' %}
+                                                <span class="badge bg-success">Paid in Full</span>
+                                            {% elif c.claim_status == 'rejected' %}
+                                                <span class="badge bg-danger">Rejected</span>
+                                            {% elif c.claim_status == 'partially_paid' %}
+                                                <span class="badge bg-warning text-dark">Partially Paid</span>
+                                            {% elif c.claim_status == 'submitted' %}
+                                                <span class="badge bg-info">Submitted</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">{{ c.get_claim_status_display }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-end fw-bold">{{ c.total_billed|rands }}</td>
+                                        <td class="text-end text-success">{{ c.total_paid|rands }}</td>
+                                        <td class="text-end text-danger">{{ c.outstanding_balance|rands }}</td>
+                                        <td class="text-center">
+                                            <a href="{% url 'claims:detail' c.pk %}" class="btn btn-xs btn-outline-primary py-0 px-2">
+                                                View
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="8" class="text-center py-4 text-muted">
+                                            <i class="bi bi-file-earmark-medical fs-2 d-block mb-1"></i>
+                                            No claims submitted for this practice yet.
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Direct Scheme Gateways Pane -->
+                    <div class="tab-pane fade" id="credentials-pane" role="tabpanel">
+                        <div class="p-3 border-bottom bg-light d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="fw-bold d-block text-dark">Bureau Master Clearing Gateways</span>
+                                <span class="small text-muted">Direct RPA claim submission on behalf of practice BHF <strong>{{ practice.bhf_practice_number }}</strong> without commercial switch fees.</span>
+                            </div>
+                            <a href="/admin/credentials/medicalaidportalcredential/" class="btn btn-sm btn-primary">
+                                <i class="bi bi-gear me-1"></i> Manage in Admin Panel
+                            </a>
+                        </div>
+                        
+                        <!-- Active Bureau Master Credentials -->
+                        <div class="p-3 bg-white border-bottom">
+                            <h6 class="small text-uppercase fw-bold text-muted mb-2">Central Bureau Credentials Active</h6>
+                            <div class="table-responsive mb-2">
+                                <table class="table table-sm table-bordered align-middle mb-0 small">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Administrator Gateway</th>
+                                            <th>Bureau Account ID</th>
+                                            <th>Gateway URL</th>
+                                            <th>Status</th>
+                                            <th>Last Authentication</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for bc in bureau_credentials %}
+                                        <tr>
+                                            <td class="fw-semibold">{{ bc.get_administrator_display }}</td>
+                                            <td class="font-monospace text-primary">{{ bc.username }}</td>
+                                            <td class="font-monospace small text-muted">{{ bc.portal_url|default:"Default Administrator Gateway" }}</td>
+                                            <td>
+                                                {% if bc.is_active %}
+                                                    <span class="badge bg-success">Active Gateway</span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary">Inactive</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if bc.last_tested %}
+                                                    <span class="text-success small"><i class="bi bi-check-circle me-1"></i>{{ bc.last_tested|date:"Y-m-d H:i" }}</span>
+                                                {% else %}
+                                                    <span class="text-muted small">Configured</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        {% empty %}
+                                        <tr>
+                                            <td colspan="5" class="text-center py-2 text-muted">
+                                                No central bureau credentials configured yet. Configure Discovery Health and Medscheme credentials in the Admin Panel under Credentials Management.
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Practice Specific Overrides (Optional) -->
+                        <div class="p-3 bg-light">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6 class="small text-uppercase fw-bold text-muted mb-0">Practice-Specific Overrides (Optional)</h6>
+                                <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2" data-bs-toggle="modal" data-bs-target="#addCredentialModal">
+                                    <i class="bi bi-plus-lg me-1"></i> Add Override
+                                </button>
+                            </div>
+                            <div class="small text-muted mb-2">
+                                If this specific doctor requires custom practice-level portal credentials instead of the Bureau Master Account, specify them below.
+                            </div>
+                            {% if portal_credentials %}
+                                <div class="table-responsive">
+                                    <table class="table table-hover table-sm align-middle mb-0 small bg-white border">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Administrator</th>
+                                                <th>Practice Username</th>
+                                                <th>Status</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for cred in portal_credentials %}
+                                            <tr>
+                                                <td class="fw-semibold">{{ cred.get_administrator_display }}</td>
+                                                <td class="font-monospace">{{ cred.username }}</td>
+                                                <td><span class="badge bg-success">Active</span></td>
+                                                <td class="text-end">
+                                                    <form method="post" action="{% url 'practices:credential_test' cred.pk %}" class="d-inline me-1">
+                                                        {% csrf_token %}
+                                                        <button type="submit" class="btn btn-xs btn-outline-success py-0 px-2">Test</button>
+                                                    </form>
+                                                    <form method="post" action="{% url 'practices:credential_delete' cred.pk %}" class="d-inline" onsubmit="return confirm('Remove override?');">
+                                                        {% csrf_token %}
+                                                        <button type="submit" class="btn btn-xs btn-outline-danger py-0 px-2">Delete</button>
+                                                    </form>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <div class="text-muted small fst-italic">No overrides configured. This practice automatically routes via the Bureau Master Credentials above.</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Portal Credential Modal -->
+<div class="modal fade" id="addCredentialModal" tabindex="-1" aria-labelledby="addCredentialModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" action="{% url 'practices:credential_create' practice.pk %}">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addCredentialModalLabel">Add Scheme Portal Credentials</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Administrator Portal</label>
+                        {{ credential_form.administrator }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Username / Practice Login</label>
+                        {{ credential_form.username }}
+                        <small class="text-muted d-block mt-1">Discovery Health Provider ID, Medscheme username, or practice BHF number.</small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Portal Password</label>
+                        {{ credential_form.password }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Portal Gateway URL (Optional)</label>
+                        {{ credential_form.portal_url }}
+                    </div>
+                    <div class="form-check mb-2">
+                        {{ credential_form.is_active }}
+                        <label class="form-check-label ms-1" for="{{ credential_form.is_active.id_for_label }}">Active for direct headless submissions</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary btn-sm">Save Portal Login</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

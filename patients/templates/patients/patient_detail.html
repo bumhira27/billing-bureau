@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>{{ patient.full_name }}</h2>
+    <a href="{% url 'patients:update' patient.pk %}" class="btn btn-warning">Edit Patient</a>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">Personal Details</div>
+            <div class="card-body">
+                <p><strong>Practice:</strong> {{ patient.practice.practice_name }}</p>
+                <p><strong>ID Number:</strong> {{ patient.id_number }}</p>
+                <p><strong>Date of Birth:</strong> {{ patient.date_of_birth }}</p>
+                <p><strong>Gender:</strong> {{ patient.get_gender_display }}</p>
+                <p><strong>Phone:</strong> {{ patient.phone }}</p>
+                <p><strong>Email:</strong> {{ patient.email }}</p>
+                <p><strong>Address:</strong> {{ patient.physical_address }} {{ patient.postal_code }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Scheme Memberships</span>
+                <a href="{% url 'patients:add_scheme' patient.pk %}" class="btn btn-sm btn-primary">Add Scheme</a>
+            </div>
+            <div class="card-body">
+                {% if schemes %}
+                    <ul class="list-group">
+                    {% for scheme in schemes %}
+                        <li class="list-group-item">
+                            <strong>{{ scheme.scheme_name }}</strong> - {{ scheme.membership_number }}
+                            {% if scheme.is_active %}<span class="badge bg-success float-end">Active</span>{% else %}<span class="badge bg-secondary float-end">Inactive</span>{% endif %}
+                        </li>
+                    {% endfor %}
+                    </ul>
+                {% else %}
+                    <p>No schemes recorded.</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="card mb-4 shadow-sm border-0">
+            <div class="card-header bg-white py-3 fw-bold small text-uppercase">Outstanding Balance</div>
+            <div class="card-body">
+                <p class="fs-4 text-danger fw-bold mb-0">{{ outstanding_balance|rands }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-header bg-white py-3 fw-bold small text-uppercase">Claims History</div>
+    <div class="card-body p-0">
+        {% if claims %}
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Claim ID</th>
+                        <th>Date of Service</th>
+                        <th>Status</th>
+                        <th class="text-end">Billed</th>
+                        <th class="text-end">Paid</th>
+                        <th class="text-end">Outstanding</th>
+                        <th class="text-center">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for c in claims %}
+                    <tr>
+                        <td class="fw-bold"><a href="{% url 'claims:detail' c.id %}">#{{ c.id }}</a></td>
+                        <td>{{ c.date_of_service|date:"Y-m-d" }}</td>
+                        <td>
+                            <span class="badge bg-secondary">{{ c.get_claim_status_display }}</span>
+                        </td>
+                        <td class="text-end">{{ c.total_billed|rands }}</td>
+                        <td class="text-end text-success">{{ c.total_paid|rands }}</td>
+                        <td class="text-end text-danger">{{ c.outstanding_balance|rands }}</td>
+                        <td class="text-center">
+                            <a href="{% url 'claims:detail' c.id %}" class="btn btn-sm btn-outline-primary py-0 px-2">View</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="p-3 text-muted mb-0">No claims found.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

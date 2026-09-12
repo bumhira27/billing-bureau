@@ -1,0 +1,23 @@
+{% for patient in patients %}
+<tr>
+    <td>{{ patient.full_name }}</td>
+    <td>{{ patient.id_number }}</td>
+    <td>
+        {% if patient.active_scheme %}
+            {{ patient.active_scheme.scheme_name }}
+        {% else %}
+            <span class="text-muted">None</span>
+        {% endif %}
+    </td>
+    <td>{{ patient.phone }}</td>
+    <td>{{ patient.practice.practice_name }}</td>
+    <td>
+        <a href="{% url 'patients:detail' patient.pk %}" class="btn btn-sm btn-info">View</a>
+        <a href="{% url 'patients:update' patient.pk %}" class="btn btn-sm btn-warning">Edit</a>
+    </td>
+</tr>
+{% empty %}
+<tr>
+    <td colspan="6" class="text-center">No patients found.</td>
+</tr>
+{% endfor %}

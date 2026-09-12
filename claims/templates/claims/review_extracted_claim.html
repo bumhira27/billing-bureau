@@ -1,0 +1,272 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-2 pb-2 mb-3 border-bottom">
+    <div>
+        <h1 class="h3 mb-0">
+            <span class="badge bg-warning text-dark me-2">AI Draft</span>
+            Review Extracted Claim #{{ object.id }}
+        </h1>
+        <small class="text-muted">Practice: <strong>{{ object.practice.practice_name }}</strong> | Extracted: {{ object.created_at|date:"Y-m-d H:i" }}</small>
+    </div>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{% url 'claims:list' %}" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-x-circle me-1"></i> Cancel
+        </a>
+    </div>
+</div>
+
+<div class="alert alert-info py-2 px-3 mb-3 d-flex align-items-center">
+    <i class="bi bi-eye fs-4 me-2"></i>
+    <div class="small">
+        <strong>Human-in-the-Loop Verification:</strong> Verify the AI-transcribed billing details against the original doctor's handwriting on the left. Adjust any codes or amounts before approving.
+    </div>
+</div>
+
+<form method="post" enctype="multipart/form-data" id="claim-verification-form">
+    {% csrf_token %}
+    <div class="row g-3">
+        <!-- Left Pane: Handwritten Note Viewer -->
+        <div class="col-lg-5">
+            <div class="card shadow-sm border-0 sticky-top" style="top: 80px; z-index: 10;">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center py-2">
+                    <span class="fw-bold small"><i class="bi bi-file-image me-1"></i> Original Handwritten Document</span>
+                    <div class="btn-group btn-group-sm">
+                        <button type="button" class="btn btn-outline-secondary" id="zoom-in-btn" title="Zoom In"><i class="bi bi-zoom-in"></i></button>
+                        <button type="button" class="btn btn-outline-secondary" id="zoom-out-btn" title="Zoom Out"><i class="bi bi-zoom-out"></i></button>
+                        <button type="button" class="btn btn-outline-secondary" id="zoom-reset-btn" title="Reset"><i class="bi bi-arrow-counterclockwise"></i></button>
+                    </div>
+                </div>
+                <div class="card-body p-0 text-center bg-dark overflow-auto" style="height: 680px; display: flex; align-items: center; justify-content: center;" id="image-container">
+                    {% if object.source_file %}
+                        <img src="{{ object.source_file.url }}" alt="Handwritten Note" id="note-image" class="img-fluid" style="max-height: 100%; transition: transform 0.2s ease; cursor: grab;">
+                    {% else %}
+                        <div class="text-muted p-5">
+                            <i class="bi bi-card-image fs-1 d-block mb-2"></i>
+                            No document image attached
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="card-footer py-2 bg-light text-muted small text-center">
+                    <i class="bi bi-info-circle me-1"></i> Use zoom buttons or scroll to inspect doctor's handwriting
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Pane: Editable Claim Form & Line Items -->
+        <div class="col-lg-7">
+            <!-- Patient & Service Details Card -->
+            <div class="card shadow-sm border-0 mb-3">
+                <div class="card-header bg-white py-2 fw-bold small text-uppercase">
+                    <i class="bi bi-person me-1"></i> Patient & Consultation Details
+                </div>
+                <div class="card-body">
+                    <div class="row g-2">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Patient <span class="text-danger">*</span></label>
+                            <select name="patient" class="form-select form-select-sm" required id="id_patient">
+                                {% for pt in practice_patients %}
+                                    <option value="{{ pt.id }}" {% if object.patient.id == pt.id %}selected{% endif %}>
+                                        {{ pt.full_name }} {% if pt.id_number %}({{ pt.id_number }}){% endif %}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Date of Service <span class="text-danger">*</span></label>
+                            <input type="date" name="date_of_service" class="form-control form-control-sm" value="{{ object.date_of_service|date:'Y-m-d' }}" required id="id_date_of_service">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Referring Doctor</label>
+                            <input type="text" name="referring_doctor_name" class="form-control form-control-sm" value="{{ object.referring_doctor_name|default:'' }}" placeholder="Doctor name if referral">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Pre-Auth / Authorization No.</label>
+                            <input type="text" name="authorization_number" class="form-control form-control-sm" value="{{ object.authorization_number|default:'' }}" placeholder="e.g. AUTH-12345">
+                        </div>
+                        <div class="col-12 mt-2">
+                            <label class="form-label small fw-bold">Clinical Notes / Transcription</label>
+                            <textarea name="notes" rows="2" class="form-control form-control-sm" placeholder="Clinical notes from note...">{{ object.notes }}</textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Line Items Card -->
+            <div class="card shadow-sm border-0 mb-3">
+                <div class="card-header bg-white py-2 d-flex justify-content-between align-items-center">
+                    <span class="fw-bold small text-uppercase"><i class="bi bi-list-check me-1"></i> Extracted Billing Line Items</span>
+                    <button type="button" class="btn btn-sm btn-outline-primary" id="add-line-btn">
+                        <i class="bi bi-plus-circle me-1"></i> Add Line Item
+                    </button>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        {{ formset.management_form }}
+                        <table class="table table-sm table-bordered align-middle mb-0" id="line-items-table">
+                            <thead class="table-light small">
+                                <tr>
+                                    <th style="width: 15%;">Tariff Code</th>
+                                    <th style="width: 30%;">Description</th>
+                                    <th style="width: 20%;">ICD-10 Code</th>
+                                    <th style="width: 10%;">Qty</th>
+                                    <th style="width: 15%;">Billed (R)</th>
+                                    <th style="width: 10%; text-align: center;">Del</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for f in formset %}
+                                    <tr class="formset-row">
+                                        {% for hidden in f.hidden_fields %}{{ hidden }}{% endfor %}
+                                        <td>
+                                            <input type="text" name="{{ f.prefix }}-tariff_code" value="{{ f.tariff_code.value|default:'' }}" class="form-control form-control-sm font-monospace fw-bold" required>
+                                        </td>
+                                        <td>
+                                            <input type="text" name="{{ f.prefix }}-tariff_description" value="{{ f.tariff_description.value|default:'' }}" class="form-control form-control-sm">
+                                        </td>
+                                        <td>
+                                            <input type="text" name="{{ f.prefix }}-icd10_primary" value="{{ f.icd10_primary.value|default:'' }}" class="form-control form-control-sm font-monospace fw-bold text-uppercase" required>
+                                        </td>
+                                        <td>
+                                            <input type="number" name="{{ f.prefix }}-quantity" value="{{ f.quantity.value|default:'1' }}" min="1" class="form-control form-control-sm qty-input text-center">
+                                        </td>
+                                        <td>
+                                            <input type="number" step="0.01" name="{{ f.prefix }}-amount_billed" value="{{ f.amount_billed.value|default:'0.00' }}" class="form-control form-control-sm amount-input fw-bold text-end">
+                                        </td>
+                                        <td class="text-center">
+                                            {% if f.instance.pk %}
+                                                <div class="form-check d-inline-block">
+                                                    <input type="checkbox" name="{{ f.prefix }}-DELETE" id="{{ f.prefix }}-DELETE" class="form-check-input">
+                                                </div>
+                                            {% else %}
+                                                <button type="button" class="btn btn-sm btn-outline-danger py-0 px-1 remove-temp-row"><i class="bi bi-trash"></i></button>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer bg-light d-flex justify-content-between align-items-center py-2">
+                    <span class="small text-muted">Total Line Items: <span id="item-count">{{ object.line_items.count }}</span></span>
+                    <div class="fw-bold">
+                        Total Billed: <span class="text-primary fs-5" id="total-billed-display">{{ object.total_billed|rands }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="card shadow-sm border-0 bg-white">
+                <div class="card-body d-flex justify-content-between align-items-center p-3">
+                    <button type="submit" name="action" value="save_draft" class="btn btn-outline-secondary">
+                        <i class="bi bi-save me-1"></i> Save as Draft
+                    </button>
+                    <div>
+                        <button type="submit" name="action" value="submit" class="btn btn-success btn-lg px-4">
+                            <i class="bi bi-check2-circle me-1"></i> Approve & Submit Claim
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Image Zoom/Pan functionality
+        const img = document.getElementById('note-image');
+        let currentZoom = 1.0;
+        
+        document.getElementById('zoom-in-btn').addEventListener('click', function() {
+            currentZoom += 0.25;
+            applyZoom();
+        });
+        document.getElementById('zoom-out-btn').addEventListener('click', function() {
+            if (currentZoom > 0.5) {
+                currentZoom -= 0.25;
+                applyZoom();
+            }
+        });
+        document.getElementById('zoom-reset-btn').addEventListener('click', function() {
+            currentZoom = 1.0;
+            applyZoom();
+        });
+        
+        function applyZoom() {
+            if (img) {
+                img.style.transform = 'scale(' + currentZoom + ')';
+            }
+        }
+
+        // Live Total Billed Calculation
+        function updateTotals() {
+            let total = 0;
+            const amountInputs = document.querySelectorAll('.amount-input');
+            amountInputs.forEach(input => {
+                const row = input.closest('tr');
+                const deleteCheck = row.querySelector('input[type="checkbox"][name$="-DELETE"]');
+                if (!deleteCheck || !deleteCheck.checked) {
+                    const val = parseFloat(input.value) || 0;
+                    total += val;
+                }
+            });
+            document.getElementById('total-billed-display').textContent = 'R ' + total.toFixed(2);
+        }
+
+        document.getElementById('line-items-table').addEventListener('input', function(e) {
+            if (e.target.classList.contains('amount-input') || e.target.classList.contains('qty-input')) {
+                updateTotals();
+            }
+        });
+
+        document.getElementById('line-items-table').addEventListener('change', function(e) {
+            if (e.target.type === 'checkbox' && e.target.name.endsWith('-DELETE')) {
+                updateTotals();
+            }
+        });
+
+        // Add line functionality
+        const addBtn = document.getElementById('add-line-btn');
+        const totalForms = document.getElementById('id_line_items-TOTAL_FORMS');
+        const tbody = document.querySelector('#line-items-table tbody');
+
+        if (addBtn && totalForms && tbody) {
+            addBtn.addEventListener('click', function() {
+                const currentCount = parseInt(totalForms.value);
+                const firstRow = tbody.querySelector('.formset-row');
+                if (firstRow) {
+                    const newRow = firstRow.cloneNode(true);
+                    newRow.querySelectorAll('input').forEach(input => {
+                        if (input.type === 'hidden' && input.name.endsWith('-id')) {
+                            input.value = '';
+                        } else if (input.type === 'checkbox') {
+                            input.checked = false;
+                        } else {
+                            if (input.name.endsWith('-quantity')) {
+                                input.value = '1';
+                            } else if (input.name.endsWith('-amount_billed')) {
+                                input.value = '0.00';
+                            } else {
+                                input.value = '';
+                            }
+                        }
+                        // Update prefix
+                        input.name = input.name.replace(/-\d+-/, '-' + currentCount + '-');
+                        if (input.id) {
+                            input.id = input.id.replace(/-\d+-/, '-' + currentCount + '-');
+                        }
+                    });
+                    tbody.appendChild(newRow);
+                    totalForms.value = currentCount + 1;
+                    updateTotals();
+                }
+            });
+        }
+
+        updateTotals();
+    });
+</script>
+{% endblock %}

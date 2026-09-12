@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+{% load currency_tags %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Claims</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{% url 'claims:upload_note' %}" class="btn btn-sm btn-outline-info me-2">
+            <i class="bi bi-camera me-1"></i> AI Note Capture
+        </a>
+        <a href="{% url 'claims:batch_capture' %}" class="btn btn-sm btn-outline-success me-2">
+            <i class="bi bi-table me-1"></i> Batch Capture
+        </a>
+        <a href="{% url 'claims:create' %}" class="btn btn-sm btn-primary">
+            <i class="bi bi-plus-lg me-1"></i> New Claim
+        </a>
+    </div>
+</div>
+
+<div class="d-flex justify-content-between mb-4">
+    <form method="get" class="d-flex flex-grow-1 me-3">
+        <!-- Preserve advanced filters in hidden inputs if they exist so search works within filtered results -->
+        {% if current_practice %}<input type="hidden" name="practice" value="{{ current_practice }}">{% endif %}
+        {% if current_status %}<input type="hidden" name="status" value="{{ current_status }}">{% endif %}
+        {% if current_date_from %}<input type="hidden" name="date_from" value="{{ current_date_from }}">{% endif %}
+        {% if current_date_to %}<input type="hidden" name="date_to" value="{{ current_date_to }}">{% endif %}
+        <input type="text" name="q" class="form-control" placeholder="Smart Search: Patient Name or Ref..." value="{{ current_q }}">
+        <button type="submit" class="btn btn-primary ms-2"><i class="bi bi-search"></i> Search</button>
+    </form>
+    <button class="btn btn-outline-secondary" type="button" data-bs-toggle="offcanvas" data-bs-target="#advancedFilters" aria-controls="advancedFilters">
+        <i class="bi bi-sliders"></i> Advanced Filters
+    </button>
+</div>
+
+<!-- Offcanvas Advanced Filters -->
+<div class="offcanvas offcanvas-end" tabindex="-1" id="advancedFilters" aria-labelledby="advancedFiltersLabel">
+    <div class="offcanvas-header">
+        <h5 class="offcanvas-title" id="advancedFiltersLabel">Filter Claims</h5>
+        <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body">
+        <form method="get">
+            <input type="hidden" name="q" value="{{ current_q }}">
+            
+            <div class="mb-3">
+                <label class="form-label">Practice</label>
+                <select name="practice" class="form-select">
+                    <option value="">All Practices</option>
+                    {% for practice in practices %}
+                        <option value="{{ practice.id }}" {% if current_practice == practice.id|stringformat:"s" %}selected{% endif %}>{{ practice.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">Status</label>
+                <select name="status" class="form-select">
+                    <option value="">All Statuses</option>
+                    {% for status_val, status_name in statuses %}
+                        <option value="{{ status_val }}" {% if current_status == status_val %}selected{% endif %}>{{ status_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">Date From</label>
+                <input type="date" name="date_from" class="form-control" value="{{ current_date_from }}">
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">Date To</label>
+                <input type="date" name="date_to" class="form-control" value="{{ current_date_to }}">
+            </div>
+            
+            <button type="submit" class="btn btn-primary w-100">Apply Filters</button>
+            <a href="{% url 'claims:list' %}" class="btn btn-outline-secondary w-100 mt-2">Clear All</a>
+        </form>
+    </div>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-striped table-hover">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Patient</th>
+                <th>Practice</th>
+                <th>Date of Service</th>
+                <th>Status</th>
+                <th>Total Billed</th>
+                <th>Total Paid</th>
+                <th>Outstanding</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for claim in claims %}
+            <tr>
+                <td>{{ claim.id }}</td>
+                <td>{{ claim.patient }}</td>
+                <td>{{ claim.practice }}</td>
+                <td>{{ claim.date_of_service }}</td>
+                <td>
+                    {% if claim.claim_status == 'draft' %}
+                        <span class="badge bg-secondary">Draft</span>
+                    {% elif claim.claim_status == 'submitted' %}
+                        <span class="badge bg-info">Submitted</span>
+                    {% elif claim.claim_status == 'accepted' %}
+                        <span class="badge bg-primary">Accepted</span>
+                    {% elif claim.claim_status == 'rejected' %}
+                        <span class="badge bg-danger">Rejected</span>
+                    {% elif claim.claim_status == 'paid' %}
+                        <span class="badge bg-success">Paid in Full</span>
+                    {% elif claim.claim_status == 'partially_paid' %}
+                        <span class="badge bg-warning text-dark">Partially Paid</span>
+                    {% elif claim.claim_status == 'appealed' %}
+                        <span class="badge bg-dark">Under Appeal</span>
+                    {% elif claim.claim_status == 'written_off' %}
+                        <span class="badge bg-secondary">Written Off</span>
+                    {% endif %}
+                </td>
+                <td class="fw-semibold">{{ claim.total_billed|rands }}</td>
+                <td class="text-success">{{ claim.total_paid|rands }}</td>
+                <td class="{% if claim.outstanding_balance > 0 %}text-danger fw-semibold{% else %}text-muted{% endif %}">{{ claim.outstanding_balance|rands }}</td>
+                <td>
+                    <a href="{% url 'claims:detail' claim.id %}" class="btn btn-sm btn-outline-primary">View</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="9" class="text-center">No claims found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% include 'includes/pagination.html' %}
+{% endblock %}

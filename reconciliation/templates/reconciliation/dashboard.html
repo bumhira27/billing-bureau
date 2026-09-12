@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Reconciliation</h1>
+        <a href="{% url 'reconciliation:upload' %}" class="btn btn-primary">Upload Remittance File</a>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-light">
+                <div class="card-body">
+                    <h5 class="card-title">Total Files</h5>
+                    <p class="card-text h3">{{ total_files }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Lines Matched</h5>
+                    <p class="card-text h3">{{ total_matched }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning">
+                <div class="card-body">
+                    <h5 class="card-title">Lines Unmatched</h5>
+                    <p class="card-text h3">{{ total_unmatched }}</p>
+                    <a href="{% url 'reconciliation:unmatched' %}" class="btn btn-sm btn-dark mt-2">View Unmatched <span class="badge bg-danger">{{ total_unmatched }}</span></a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Match Rate</h5>
+                    <p class="card-text h3">{{ match_rate|percentage }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h3>Recent Files</h3>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>File Name</th>
+                <th>Switch</th>
+                <th>Date</th>
+                <th>Status</th>
+                <th>Records</th>
+                <th>Matched</th>
+                <th>Unmatched</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for file in recent_files %}
+            <tr>
+                <td>{{ file.file_name }}</td>
+                <td>{{ file.get_switch_provider_display }}</td>
+                <td>{{ file.received_date }}</td>
+                <td><span class="badge bg-secondary">{{ file.get_processed_status_display }}</span></td>
+                <td>{{ file.total_records }}</td>
+                <td>{{ file.records_matched }}</td>
+                <td>{{ file.records_unmatched }}</td>
+                <td>
+                    <a href="{% url 'reconciliation:file_detail' file.pk %}" class="btn btn-sm btn-info">View</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

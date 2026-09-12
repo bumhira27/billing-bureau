@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Remittance File: {{ file.file_name }}</h2>
+    
+    <div class="card mb-4">
+        <div class="card-body">
+            <p><strong>Switch:</strong> {{ file.get_switch_provider_display }}</p>
+            <p><strong>Date:</strong> {{ file.received_date }}</p>
+            <p><strong>Status:</strong> {{ file.get_processed_status_display }}</p>
+            <p><strong>Total Records:</strong> {{ file.total_records }}</p>
+            <p><strong>Matched:</strong> {{ file.records_matched }} | <strong>Unmatched:</strong> {{ file.records_unmatched }}</p>
+            
+            <div class="progress">
+                {% if file.total_records > 0 %}
+                <div class="progress-bar bg-success" role="progressbar" style="width: {% widthratio file.records_matched file.total_records 100 %}%">
+                    {% widthratio file.records_matched file.total_records 100 %}%
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <h4>Lines</h4>
+    <table class="table table-sm table-striped">
+        <thead>
+            <tr>
+                <th>Practice No</th>
+                <th>Scheme</th>
+                <th>Member No</th>
+                <th>Dep</th>
+                <th>Patient</th>
+                <th>Date</th>
+                <th>Tariff</th>
+                <th>Claimed</th>
+                <th>Approved</th>
+                <th>Paid</th>
+                <th>Reason</th>
+                <th>Status</th>
+                <th>Matched To</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for line in lines %}
+            <tr>
+                <td>{{ line.practice_number }}</td>
+                <td>{{ line.scheme_name }}</td>
+                <td>{{ line.membership_number }}</td>
+                <td>{{ line.dependent_code }}</td>
+                <td>{{ line.patient_name }}</td>
+                <td>{{ line.date_of_service|date:"Y-m-d" }}</td>
+                <td>{{ line.tariff_code }}</td>
+                <td class="text-end">{{ line.amount_claimed|rands }}</td>
+                <td class="text-end">{{ line.amount_approved|rands }}</td>
+                <td class="text-end text-success fw-semibold">{{ line.amount_paid|rands }}</td>
+                <td>{{ line.reason_code }}</td>
+                <td>
+                    <span class="badge {% if line.match_status == 'unmatched' %}bg-danger{% else %}bg-success{% endif %}">
+                        {{ line.get_match_status_display }}
+                    </span>
+                </td>
+                <td>
+                    {% if line.matched_claim_line_item %}
+                        Claim ID: {{ line.matched_claim_line_item.claim.id }}
+                    {% else %}
+                        <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#matchModal{{ line.id }}">Match</button>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

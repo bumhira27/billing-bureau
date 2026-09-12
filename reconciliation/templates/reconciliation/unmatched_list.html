@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Unmatched Remittance Lines</h2>
+    
+    <form method="get" class="mb-4">
+        <div class="row">
+            <div class="col-md-4">
+                <input type="text" name="q" class="form-control" placeholder="Search Member No" value="{{ request.GET.q }}">
+            </div>
+            <div class="col-md-4">
+                <input type="text" name="practice" class="form-control" placeholder="Practice No" value="{{ request.GET.practice }}">
+            </div>
+            <div class="col-md-4">
+                <button type="submit" class="btn btn-primary">Search</button>
+            </div>
+        </div>
+    </form>
+
+    <table class="table table-sm table-striped">
+        <thead>
+            <tr>
+                <th>Practice No</th>
+                <th>Member No</th>
+                <th>Date</th>
+                <th>Tariff</th>
+                <th>Paid</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for line in lines %}
+            <tr>
+                <td>{{ line.practice_number }}</td>
+                <td>{{ line.membership_number }}</td>
+                <td>{{ line.date_of_service }}</td>
+                <td>{{ line.tariff_code }}</td>
+                <td class="text-success fw-semibold">{{ line.amount_paid|rands }}</td>
+                <td>
+                    <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#matchModal{{ line.id }}">Match</button>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6">No unmatched lines found.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% if is_paginated %}
+    <div class="pagination">
+        <span class="page-links">
+            {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">previous</a>
+            {% endif %}
+            <span class="page-current">
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+            </span>
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">next</a>
+            {% endif %}
+        </span>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

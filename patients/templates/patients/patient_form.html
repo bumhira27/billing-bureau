@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<h2>{% if form.instance.pk %}Edit Patient{% else %}Add Patient{% endif %}</h2>
+<div class="card">
+    <div class="card-body">
+        {% crispy form %}
+        <a href="{% if form.instance.pk %}{% url 'patients:detail' form.instance.pk %}{% else %}{% url 'patients:list' %}{% endif %}" class="btn btn-secondary mt-3">Cancel</a>
+    </div>
+</div>
+{% endblock %}

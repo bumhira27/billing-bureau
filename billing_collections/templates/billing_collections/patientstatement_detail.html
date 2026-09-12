@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block title %}Statement Details{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Statement Details</h2>
+        <a href="{% url 'billing_collections:statement_list' %}" class="btn btn-secondary">Back to List</a>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Statement Info</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Patient:</strong> {{ statement.patient }}</p>
+                    <p><strong>Practice:</strong> {{ statement.practice }}</p>
+                    <p><strong>Date:</strong> {{ statement.statement_date|date:"Y-m-d" }}</p>
+                    <p><strong>Outstanding Amount:</strong> <span class="text-danger fw-bold">{{ statement.total_outstanding|rands }}</span></p>
+                    <p><strong>Sent Via:</strong> {{ statement.get_sent_via_display|default:"Not specified" }}</p>
+                    <p><strong>Status:</strong> <span class="badge bg-{% if statement.delivery_status == 'delivered' %}success{% elif statement.delivery_status == 'failed' %}danger{% elif statement.delivery_status == 'not_sent' %}secondary{% else %}warning{% endif %}">{{ statement.get_delivery_status_display }}</span></p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Message Content</h5>
+                </div>
+                <div class="card-body">
+                    <p class="fst-italic">{{ statement.message_content|default:"No message content" }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Linked Claims</h5>
+        </div>
+        <div class="card-body p-0">
+            <table class="table table-striped table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Claim ID</th>
+                        <th>Date of Service</th>
+                        <th>Billed Amount</th>
+                        <th>Paid Amount</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for claim in statement.claims_included.all %}
+                    <tr>
+                        <td>{{ claim.id }}</td>
+                        <td>{{ claim.date_of_service|date:"Y-m-d" }}</td>
+                        <td>{{ claim.total_billed|rands }}</td>
+                        <td>{{ claim.total_paid|rands }}</td>
+                        <td><span class="badge badge-{{ claim.claim_status }}">{{ claim.get_claim_status_display }}</span></td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center">No linked claims</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
