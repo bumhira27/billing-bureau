@@ -1,4 +1,4 @@
-from django.views.generic import ListView, DetailView, CreateView, UpdateView
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
@@ -134,6 +134,17 @@ class ClaimUpdateView(LoginRequiredMixin, UpdateView):
             return redirect('claims:detail', pk=self.object.pk)
         else:
             return self.form_invalid(form)
+
+class ClaimDeleteView(LoginRequiredMixin, DeleteView):
+    model = Claim
+    template_name = 'claims/claim_confirm_delete.html'
+    success_url = reverse_lazy('claims:list')
+
+    def form_valid(self, form):
+        claim_id = self.object.id
+        response = super().form_valid(form)
+        messages.success(self.request, f"Claim #{claim_id} deleted successfully.")
+        return response
 
 @require_POST
 @login_required

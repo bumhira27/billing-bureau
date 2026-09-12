@@ -6,7 +6,15 @@ from .models import Practice, PortalCredential
 class PracticeForm(forms.ModelForm):
     class Meta:
         model = Practice
-        exclude = ['created_by']
+        exclude = [
+            'created_by',
+            'bank_name',
+            'bank_account_number',
+            'bank_branch_code',
+            'fee_type',
+            'fee_percentage',
+            'fee_fixed_amount',
+        ]
         widgets = {
             'popia_agreement_signed_date': forms.DateInput(attrs={'type': 'date'}),
             'service_agreement_signed_date': forms.DateInput(attrs={'type': 'date'}),
@@ -41,28 +49,10 @@ class PracticeForm(forms.ModelForm):
                 'postal_code'
             ),
             Fieldset(
-                'Banking',
-                Row(
-                    Column('bank_name', css_class='form-group col-md-4 mb-0'),
-                    Column('bank_account_number', css_class='form-group col-md-4 mb-0'),
-                    Column('bank_branch_code', css_class='form-group col-md-4 mb-0'),
-                    css_class='form-row'
-                )
-            ),
-            Fieldset(
                 'Switch Integration',
                 Row(
                     Column('switch_provider', css_class='form-group col-md-6 mb-0'),
                     Column('switch_account_id', css_class='form-group col-md-6 mb-0'),
-                    css_class='form-row'
-                )
-            ),
-            Fieldset(
-                'Fee Structure',
-                Row(
-                    Column('fee_type', css_class='form-group col-md-4 mb-0'),
-                    Column('fee_percentage', css_class='form-group col-md-4 mb-0'),
-                    Column('fee_fixed_amount', css_class='form-group col-md-4 mb-0'),
                     css_class='form-row'
                 )
             ),

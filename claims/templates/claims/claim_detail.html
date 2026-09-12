@@ -6,6 +6,9 @@
     <h1 class="text-2xl font-bold text-gray-900">Claim #{{ claim.id }}</h1>
     <div class="flex gap-2 mb-2 md:mb-0">
         <a href="{% url 'claims:update' claim.id %}" class="bg-gray-100 text-gray-700 px-3 py-1.5 rounded-md hover:bg-gray-200 transition-colors font-medium text-sm border border-gray-300">Edit</a>
+        <a href="{% url 'claims:delete' claim.id %}" class="bg-white text-red-600 hover:bg-red-50 border border-red-200 px-3 py-1.5 rounded-md transition-colors font-medium text-sm inline-flex items-center gap-1">
+            <i class="bi bi-trash"></i> Delete
+        </a>
         {% if claim.claim_status == 'draft' %}
             <form method="post" action="{% url 'claims:edi_submit' claim.id %}" class="inline">
                 {% csrf_token %}

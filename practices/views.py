@@ -52,15 +52,9 @@ class PracticeDetailView(LoginRequiredMixin, RBACQuerySetMixin, DetailView):
         context['total_collected'] = total_paid
         context['outstanding_balance'] = outstanding
         context['collection_rate'] = collection_rate
-        context['bureau_fee_earned'] = bureau_fee
 
         context['recent_claims'] = claims.order_by('-date_of_service', '-created_at')[:10]
         context['patients'] = self.object.patients.all().prefetch_related('schemes')
-        context['portal_credentials'] = self.object.portal_credentials.all()
-        from credentials.models import MedicalAidPortalCredential
-        context['bureau_credentials'] = MedicalAidPortalCredential.objects.all()
-        from .forms import PortalCredentialForm
-        context['credential_form'] = PortalCredentialForm()
         return context
 
 class PracticeCreateView(LoginRequiredMixin, CreatedByMixin, CreateView):

@@ -85,6 +85,22 @@ def run_e2e_audit():
             page.screenshot(path=os.path.join(ARTIFACT_DIR, "05_practice_detail.png"))
             print("  - Practice Detail loaded successfully with Tailwind layout & tabs.")
 
+            # Verify removal of Commission Fee, Banking, and Bureau Gateways
+            detail_text = page.locator("body").inner_text()
+            assert "Commission Fee" not in detail_text, "Found Commission Fee in Practice Detail"
+            assert "Bureau Fee" not in detail_text, "Found Bureau Fee in Practice Detail"
+            assert "Direct Scheme Gateways" not in detail_text, "Found Direct Scheme Gateways in Practice Detail"
+            assert "Bank Account" not in detail_text, "Found Bank Account in Practice Detail"
+            print("  - Verified: Practice Detail has no Commission Fees, Banking details, or Direct Scheme Gateways.")
+
+            # Also check practice edit form
+            page.goto(f"{BASE_URL}/practices/1/edit/")
+            page.wait_for_load_state("networkidle")
+            form_text = page.locator("body").inner_text()
+            assert "bank_account" not in form_text.lower()
+            assert "fee_percentage" not in form_text.lower()
+            print("  - Verified: Practice Form has no banking or fee structure inputs.")
+
         # -------------------------------------------------------------
         # 3. Claims Engine: Clinical Scrubbing & Medclaim EDI Submission
         # -------------------------------------------------------------
@@ -128,6 +144,57 @@ def run_e2e_audit():
                 page.screenshot(path=os.path.join(ARTIFACT_DIR, "09_edi_payload_modal.png"))
                 print("  - Opened Medclaim EDI Flat-File modal successfully.")
 
+        # Step 3d: Verify Claim Deletion via Edit workflow
+        print("  - Testing Claim Deletion workflow...")
+        from practices.models import Practice
+        from patients.models import Patient
+        from claims.models import Claim, ClaimLineItem
+
+        practice = Practice.objects.first()
+        patient = Patient.objects.filter(practice=practice).first()
+        test_claim = Claim.objects.create(
+            practice=practice,
+            patient=patient,
+            date_of_service=datetime.now().date(),
+            claim_status='draft',
+            total_billed=650.00
+        )
+        ClaimLineItem.objects.create(
+            claim=test_claim,
+            tariff_code="0190",
+            amount_billed=650.00,
+            icd10_primary="J06.9"
+        )
+        del_id = test_claim.id
+        print(f"  - Created test claim #{del_id} to verify deletion.")
+
+        # Visit claim edit page
+        page.goto(f"{BASE_URL}/claims/{del_id}/edit/")
+        page.wait_for_load_state("networkidle")
+        time.sleep(0.5)
+        page.screenshot(path=os.path.join(ARTIFACT_DIR, "14_claim_edit_with_delete_btn.png"))
+
+        delete_link = page.locator("a:has-text('Delete Claim')")
+        assert delete_link.count() > 0, "Delete Claim button missing on edit page"
+        delete_link.click()
+        page.wait_for_load_state("networkidle")
+        time.sleep(0.5)
+        page.screenshot(path=os.path.join(ARTIFACT_DIR, "15_claim_confirm_delete.png"))
+
+        confirm_heading = page.locator("h2.text-red-900").inner_text()
+        assert f"Delete Claim #{del_id}" in confirm_heading, "Did not reach confirmation page"
+        print(f"  - Reached confirmation page for Claim #{del_id}.")
+
+        confirm_btn = page.locator("button:has-text('Yes, Delete Claim')")
+        confirm_btn.click()
+        page.wait_for_load_state("networkidle")
+        time.sleep(0.5)
+        page.screenshot(path=os.path.join(ARTIFACT_DIR, "16_claim_deleted_confirmed.png"))
+
+        # Verify claim is deleted in database
+        assert Claim.objects.filter(id=del_id).count() == 0, f"Claim #{del_id} still exists in database"
+        print(f"  - Claim #{del_id} successfully deleted from database and redirected to list.")
+
         # -------------------------------------------------------------
         # 4. EDI Transmission Logs Audit View
         # -------------------------------------------------------------
@@ -141,12 +208,15 @@ def run_e2e_audit():
         # -------------------------------------------------------------
         # 5. Financials & Collections Dashboard
         # -------------------------------------------------------------
-        print("\n[Step 5] Auditing Bureau Financials & Collections...")
+        print("\n[Step 5] Auditing Patient Statements & Collections...")
         page.goto(f"{BASE_URL}/collections/financials/")
         page.wait_for_load_state("networkidle")
         time.sleep(0.5)
         page.screenshot(path=os.path.join(ARTIFACT_DIR, "11_bureau_financials.png"))
-        print("  - Bureau Financials dashboard verified.")
+        fin_text = page.locator("body").inner_text()
+        assert "Patient Statements & Shortfalls" in fin_text
+        assert "Bureau Invoices" not in fin_text
+        print("  - Patient Statements dashboard verified without commission invoices.")
 
         # -------------------------------------------------------------
         # 6. Reconciliation Engine Dashboard

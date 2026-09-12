@@ -74,9 +74,19 @@
         </div>
     </div>
 
-    <div class="mb-6 flex gap-3">
-        <button type="submit" class="bg-accent text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors font-medium">Save Claim</button>
-        <a href="{% if object %}{% url 'claims:detail' object.id %}{% else %}{% url 'claims:list' %}{% endif %}" class="bg-gray-100 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-200 transition-colors font-medium border border-gray-300">Cancel</a>
+    <div class="mb-6 flex justify-between items-center">
+        <div class="flex gap-3">
+            <button type="submit" class="bg-accent text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors font-medium">Save Claim</button>
+            <a href="{% if object %}{% url 'claims:detail' object.id %}{% else %}{% url 'claims:list' %}{% endif %}" class="bg-gray-100 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-200 transition-colors font-medium border border-gray-300">Cancel</a>
+        </div>
+        {% if object %}
+        <div>
+            <a href="{% url 'claims:delete' object.id %}" class="bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700 border border-red-200 px-4 py-2 rounded-md font-medium text-sm inline-flex items-center gap-1.5 transition-colors">
+                <i class="bi bi-trash"></i>
+                <span>Delete Claim</span>
+            </a>
+        </div>
+        {% endif %}
     </div>
 </form>
 

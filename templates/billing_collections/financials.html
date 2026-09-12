@@ -1,76 +1,25 @@
 {% extends "base.html" %}
 
-{% block header_title %}Bureau Financials{% endblock %}
+{% block header_title %}Patient Statements{% endblock %}
 
 {% block content %}
-<div x-data="{ activeTab: 'invoices' }" class="w-full">
-    
-    <!-- Header & Tabs -->
-    <div class="mb-6 border-b border-gray-200">
-        <h1 class="text-2xl font-semibold text-gray-900 mb-4">Financials & Collections</h1>
-        <nav class="-mb-px flex space-x-8" aria-label="Tabs">
-            <button @click="activeTab = 'invoices'" 
-                    :class="activeTab === 'invoices' ? 'border-accent text-accent' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
-                    class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors">
-                Bureau Invoices (Commission)
-            </button>
-            <button @click="activeTab = 'statements'" 
-                    :class="activeTab === 'statements' ? 'border-accent text-accent' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
-                    class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors">
-                Patient Statements (Shortfalls)
-            </button>
-        </nav>
-    </div>
-
-    <!-- Tab 1: Bureau Invoices -->
-    <div x-show="activeTab === 'invoices'" x-transition.opacity class="bg-surface border border-gray-200 shadow-soft rounded-xl overflow-hidden">
-        <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse">
-                <thead>
-                    <tr class="bg-gray-50 border-b border-gray-200">
-                        <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Practice</th>
-                        <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Billing Period</th>
-                        <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Collections Processed</th>
-                        <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Commission Rate</th>
-                        <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Invoice Total</th>
-                        <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-100 bg-white">
-                    {% for invoice in bureau_invoices %}
-                    <tr class="hover:bg-gray-50 transition-colors">
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ invoice.practice.practice_name }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ invoice.billing_period_start|date:"M j, Y" }} - {{ invoice.billing_period_end|date:"M j, Y" }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">R {{ invoice.total_collections_processed }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">{{ invoice.commission_rate }}%</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900 text-right">R {{ invoice.invoice_total }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            {% if invoice.status == 'draft' %}
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">Draft</span>
-                            {% elif invoice.status == 'issued' %}
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">Issued</span>
-                            {% elif invoice.status == 'paid' %}
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Paid</span>
-                            {% else %}
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">{{ invoice.status|title }}</span>
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="6" class="px-6 py-12 text-center text-gray-500 text-sm">
-                            <i class="bi bi-receipt text-2xl mb-2 block text-gray-300"></i>
-                            No Bureau Invoices generated yet.
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+<div class="w-full space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center pb-4 border-b border-gray-200 gap-4">
+        <div>
+            <h1 class="text-2xl font-semibold text-gray-900 mb-1">Patient Statements & Shortfalls</h1>
+            <p class="text-sm text-gray-500">Track and dispatch patient co-payment shortfalls for outstanding medical claim balances.</p>
+        </div>
+        <div class="flex gap-2">
+            <a href="{% url 'billing_collections:generate_statements' %}" class="bg-accent hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg text-sm transition-colors inline-flex items-center gap-1.5 shadow-sm">
+                <i class="bi bi-plus-lg text-xs"></i>
+                <span>Generate Statements</span>
+            </a>
         </div>
     </div>
 
-    <!-- Tab 2: Patient Statements -->
-    <div x-show="activeTab === 'statements'" style="display: none;" x-transition.opacity class="bg-surface border border-gray-200 shadow-soft rounded-xl overflow-hidden">
+    <!-- Patient Statements Table -->
+    <div class="bg-surface border border-gray-200 shadow-soft rounded-xl overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
                 <thead>
@@ -79,15 +28,20 @@
                         <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Patient Name</th>
                         <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Practice</th>
                         <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Outstanding Amount</th>
-                        <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-                        <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Message Draft</th>
+                        <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Delivery Status</th>
+                        <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Statement Message</th>
+                        <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-center">Action</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100 bg-white">
                     {% for stmt in patient_statements %}
                     <tr class="hover:bg-gray-50 transition-colors">
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ stmt.statement_date|date:"Y-m-d" }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ stmt.patient.first_name }} {{ stmt.patient.last_name }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            <a href="{% url 'billing_collections:statement_detail' stmt.pk %}" class="hover:underline text-accent">
+                                {{ stmt.patient.first_name }} {{ stmt.patient.last_name }}
+                            </a>
+                        </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ stmt.practice.practice_name }}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-red-600 text-right">R {{ stmt.total_outstanding }}</td>
                         <td class="px-6 py-4 whitespace-nowrap">
@@ -100,12 +54,15 @@
                             {% endif %}
                         </td>
                         <td class="px-6 py-4 text-sm text-gray-500 max-w-xs truncate" title="{{ stmt.message_content }}">{{ stmt.message_content }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm">
+                            <a href="{% url 'billing_collections:statement_detail' stmt.pk %}" class="text-accent hover:underline font-medium">View</a>
+                        </td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="6" class="px-6 py-12 text-center text-gray-500 text-sm">
-                            <i class="bi bi-envelope-paper text-2xl mb-2 block text-gray-300"></i>
-                            No Patient Statements generated yet.
+                        <td colspan="7" class="px-6 py-12 text-center text-gray-500 text-sm">
+                            <i class="bi bi-envelope-paper text-3xl mb-2 block text-gray-300"></i>
+                            No patient shortfall statements generated yet.
                         </td>
                     </tr>
                     {% endfor %}
@@ -113,6 +70,5 @@
             </table>
         </div>
     </div>
-
 </div>
 {% endblock %}

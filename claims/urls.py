@@ -8,6 +8,7 @@ urlpatterns = [
     path('create/', views.ClaimCreateView.as_view(), name='create'),
     path('<int:pk>/', views.ClaimDetailView.as_view(), name='detail'),
     path('<int:pk>/edit/', views.ClaimUpdateView.as_view(), name='update'),
+    path('<int:pk>/delete/', views.ClaimDeleteView.as_view(), name='delete'),
     path('<int:pk>/submit/', views.claim_submit, name='submit'),
     path('<int:pk>/edi-submit/', views.claim_edi_submit, name='edi_submit'),
     path('<int:pk>/rpa_submit/', views.claim_rpa_submit, name='rpa_submit'),
