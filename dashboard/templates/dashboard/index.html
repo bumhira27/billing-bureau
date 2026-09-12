@@ -43,23 +43,11 @@
 
     </div>
 
-    <!-- Charts Row -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-        
-        <!-- Monthly Chart -->
-        <div class="bg-surface rounded-xl border border-gray-200 shadow-soft p-5 col-span-1 lg:col-span-2 xl:col-span-2">
-            <h6 class="text-sm font-semibold text-gray-900 mb-4">Collections vs Billings (Last 6 Months)</h6>
-            <div class="h-64 relative w-full">
-                <canvas id="monthlyChart"></canvas>
-            </div>
-        </div>
-
-        <!-- Status Breakdown -->
-        <div class="bg-surface rounded-xl border border-gray-200 shadow-soft p-5 col-span-1">
-            <h6 class="text-sm font-semibold text-gray-900 mb-4">Claims by Status</h6>
-            <div class="h-64 relative w-full flex justify-center">
-                <canvas id="statusChart"></canvas>
-            </div>
+    <!-- Monthly Collections Chart -->
+    <div class="bg-surface rounded-xl border border-gray-200 shadow-soft p-5">
+        <h6 class="text-sm font-semibold text-gray-900 mb-4">Collections vs Billings (Last 6 Months)</h6>
+        <div class="h-64 relative w-full">
+            <canvas id="monthlyChart"></canvas>
         </div>
     </div>
 
@@ -179,7 +167,6 @@
 </div>
 
 {{ monthly_collections|json_script:"monthly-data" }}
-{{ claims_by_status|json_script:"status-data" }}
 {{ ageing_buckets|json_script:"ageing-data" }}
 
 <script>
@@ -199,7 +186,6 @@
         };
 
         const monthlyData = JSON.parse(document.getElementById('monthly-data').textContent);
-        const statusData = JSON.parse(document.getElementById('status-data').textContent);
         const ageingData = JSON.parse(document.getElementById('ageing-data').textContent);
         
         Chart.defaults.font.family = "'Inter', sans-serif";
@@ -238,29 +224,6 @@
                         y: { beginAtZero: true, grid: { borderDash: [4, 4], color: '#E5E7EB' } },
                         x: { grid: { display: false } }
                     }
-                }
-            });
-        }
-        
-        // Status Chart
-        const statusLabels = Object.keys(statusData);
-        const statusCounts = Object.values(statusData);
-        if (statusLabels.length > 0) {
-            new Chart(document.getElementById('statusChart'), {
-                type: 'doughnut',
-                data: {
-                    labels: statusLabels,
-                    datasets: [{
-                        data: statusCounts,
-                        backgroundColor: [ colors.success, colors.danger, colors.warning, colors.accent, colors.primary ],
-                        borderWidth: 0
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    cutout: '70%',
-                    plugins: { legend: { position: 'bottom' } }
                 }
             });
         }

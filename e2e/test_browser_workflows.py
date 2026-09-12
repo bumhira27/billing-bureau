@@ -66,6 +66,9 @@ def run_e2e_audit():
         # Verify landing on Dashboard or main page
         print(f"  - Successfully Authenticated. Current URL: {page.url}")
         time.sleep(1)
+        dash_text = page.locator("body").inner_text()
+        assert "Claims by Status" not in dash_text, "Found 'Claims by Status' on Dashboard!"
+        print("  - Verified: 'Claims by Status' is absent from Dashboard.")
         page.screenshot(path=os.path.join(ARTIFACT_DIR, "03_dashboard_verified.png"))
 
         # -------------------------------------------------------------
