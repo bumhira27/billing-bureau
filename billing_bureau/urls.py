@@ -2,8 +2,7 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-
-from two_factor.urls import urlpatterns as tf_urls
+from django.contrib.auth import views as auth_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -16,7 +15,24 @@ urlpatterns = [
     path('reference/', include('reference_data.urls')),
     path('bureau/', include('bureau.urls')),
     path('api/v1/', include('api.v1_urls')),
-    path('', include(tf_urls)),
+]
+
+if getattr(settings, 'MFA_ENABLED', False):
+    from two_factor.urls import urlpatterns as tf_urls
+    urlpatterns += [
+        path('', include(tf_urls)),
+    ]
+else:
+    urlpatterns += [
+        path('account/login/', auth_views.LoginView.as_view(template_name='registration/login.html', redirect_authenticated_user=True), name='login'),
+        path('accounts/login/', auth_views.LoginView.as_view(template_name='registration/login.html', redirect_authenticated_user=True)),
+        path('login/', auth_views.LoginView.as_view(template_name='registration/login.html', redirect_authenticated_user=True)),
+        path('account/logout/', auth_views.LogoutView.as_view(next_page='/account/login/'), name='logout'),
+        path('accounts/logout/', auth_views.LogoutView.as_view(next_page='/account/login/')),
+        path('logout/', auth_views.LogoutView.as_view(next_page='/account/login/')),
+    ]
+
+urlpatterns += [
     path('accounts/', include('django.contrib.auth.urls')),
 ]
 

@@ -157,9 +157,11 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-LOGIN_URL = 'two_factor:login'
+MFA_ENABLED = env.bool('MFA_ENABLED', default=False)
+if MFA_ENABLED:
+    LOGIN_URL = 'two_factor:login'
+else:
+    LOGIN_URL = '/account/login/'
 LOGIN_REDIRECT_URL = '/'
 CELERY_TASK_ALWAYS_EAGER = True 
 

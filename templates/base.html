@@ -44,13 +44,17 @@
 <body class="flex h-screen overflow-hidden bg-background">
 
     <!-- Sidebar -->
-    {% include "sidebar.html" %}
+    {% if request.user.is_authenticated %}
+        {% include "sidebar.html" %}
+    {% endif %}
 
     <!-- Main Content -->
     <div class="flex flex-col flex-1 w-full overflow-y-auto" hx-history-elt>
         
         <!-- Navbar -->
-        {% include "navbar.html" %}
+        {% if request.user.is_authenticated %}
+            {% include "navbar.html" %}
+        {% endif %}
 
         <main class="flex-1 p-6 lg:p-10 max-w-7xl mx-auto w-full">
             <!-- Toast Notifications (Spring Animated) -->

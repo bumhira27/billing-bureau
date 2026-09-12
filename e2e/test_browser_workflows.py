@@ -28,20 +28,25 @@ def run_e2e_audit():
         page = context.new_page()
 
         # -------------------------------------------------------------
-        # 1. Authentication & Two-Factor (TOTP) Wizard
+        # 1. Authentication (Direct Sign-In, 2FA Disabled)
         # -------------------------------------------------------------
-        print("\n[Step 1] Testing Authentication & TOTP Flow...")
+        print("\n[Step 1] Testing Direct Sign-In (2FA Disabled)...")
         page.goto(f"{BASE_URL}/account/login/")
         page.wait_for_load_state("networkidle")
         page.screenshot(path=os.path.join(ARTIFACT_DIR, "01_login_step_auth.png"))
 
-        # Step 1a: Fill username & password
-        page.fill("input[name='auth-username']", "admin")
-        page.fill("input[name='auth-password']", "AdminPass123!")
+        # Step 1a: Fill username & password (supports standard or two-factor wizard input names)
+        if page.locator("input[name='auth-username']").count() > 0:
+            page.fill("input[name='auth-username']", "admin")
+            page.fill("input[name='auth-password']", "AdminPass123!")
+        else:
+            page.fill("input[name='username']", "admin")
+            page.fill("input[name='password']", "AdminPass123!")
+
         page.click("button[type='submit']")
         page.wait_for_load_state("networkidle")
 
-        # Step 1b: If prompted for token
+        # Step 1b: If prompted for token (when 2FA is toggled on)
         if "token" in page.url or page.locator("input[name='token-otp_token']").count() > 0:
             print("  - TOTP Verification Step Detected. Generating code from device key...")
             u = User.objects.get(username="admin")
@@ -55,6 +60,8 @@ def run_e2e_audit():
             page.fill("input[name='token-otp_token']", code)
             page.click("button[type='submit']")
             page.wait_for_load_state("networkidle")
+        else:
+            print("  - 2FA is disabled. Direct single-step sign-in succeeded without OTP prompt.")
 
         # Verify landing on Dashboard or main page
         print(f"  - Successfully Authenticated. Current URL: {page.url}")

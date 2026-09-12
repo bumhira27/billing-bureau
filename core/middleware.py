@@ -1,4 +1,7 @@
 import re
+from django.shortcuts import redirect
+from django.urls import reverse
+from django.conf import settings
 from patients.models import Patient, PHIReadAudit
 
 class PHIReadLoggerMiddleware:
@@ -39,18 +42,20 @@ class PHIReadLoggerMiddleware:
             ip = request.META.get('REMOTE_ADDR')
         return ip
 
-from django.shortcuts import redirect
-from django.urls import reverse
 
 class EnforceBureauAdminMFAMiddleware:
     """
     Ensures that users in the BureauAdmin group have verified via MFA.
     If they are not verified, forces them to the 2FA setup or verification page.
+    Bypassed when MFA_ENABLED is False.
     """
     def __init__(self, get_response):
         self.get_response = get_response
 
     def __call__(self, request):
+        if not getattr(settings, 'MFA_ENABLED', False):
+            return self.get_response(request)
+
         if request.user.is_authenticated and not request.user.is_verified():
             if request.user.is_superuser or request.user.groups.filter(name="BureauAdmin").exists():
                 # Allow access to auth/setup pages
