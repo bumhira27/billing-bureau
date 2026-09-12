@@ -1,16 +1,36 @@
 # Changelog
 
-All notable changes to the Billing Bureau project will be documented in this file.
+All notable changes to the Billing Bureau project are documented in this file.
 
-## [Unreleased] - 2026-09-12
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [1.0.0-rc.1] - 2026-09-12
 
 ### Added
-- **Claim Scrubbing Rules Engine**: `ClaimScrubber` registry that automatically validates claims for gender and age-tariff mismatches before RPA submission to fail fast.
-- **POPIA/HIPAA Compliance**: Implemented `EncryptedCharField` using deterministic AES (Fernet) for database-level encryption of `Patient.id_number`, phone numbers, emails, and medical aid membership numbers.
-- **Read Access Audit Logging**: Added `PHIReadLoggerMiddleware` and `PHIReadAudit` model to track when users view patient Patient Health Information (PHI).
-- **Modular RPA Adapters**: Decoupled bot scripts from core Django by migrating RPA code into an isolated `rpa_adapters` package with a strict `BasePortalBot` interface.
-- **Interoperability DTOs**: Standardized Claim payload structure using `ClaimDTO` (inspired by HL7 FHIR standard) to pass data to RPA bots, replacing rigid Django ORM object passing.
+* Medclaim EDI Flat-File Generation Engine (`switch_adapters/mediswitch_edi.py`) mapping claims to MediSwitch / Healthbridge batch specifications.
+* Multi-pass eRA reconciliation pipeline in `reconciliation/matching.py` with exact, fuzzy-date, and manual queues.
+* Database row-level locking (`select_for_update`) across line-item reconciliation to prevent race conditions during concurrent statement posting.
+* Pre-submission clinical rules engine (`claims/scrubbing.py`) for automated diagnosis-gender and age-tariff validation.
+* Offline Bedside Ward Sync REST API v1 (`/api/v1/claims/sync/`) with RFC 7807 problem details and mandatory `Idempotency-Key` tracking.
+* Time-based One-Time Password (TOTP) Multi-Factor Authentication via `django-otp` and `django-two-factor-auth`.
+* Enforced MFA middleware (`EnforceBureauAdminMFAMiddleware`) for administrative users.
+* Practice-level Role-Based Access Control (`RBACQuerySetMixin`) isolating data access between `BureauAdmin` and `PracticeUser` groups.
+* AI Clinical Note Extractor powered by Google GenAI SDK for extracting ICD-10 and tariff line items from photographed clinical day-sheets.
+* Dynamic sidebar role redaction template filter (`has_group`) in `core/templatetags/role_tags.py`.
 
 ### Changed
-- Refactored `claims.tasks.submit_claim_rpa` to utilize the new scrubbing engine and the modular DTO-driven bot adapters.
-- Updated all test suites to accommodate encrypted fields, modular bot mocking, and scrubbing pipelines (33 passing tests).
+* Migrated complete client presentation layer from Bootstrap 5 to Tailwind CSS and Alpine.js.
+* Modernized layout templates (`base.html`, `sidebar.html`, `navbar.html`) incorporating Emil Kowalski spring animations.
+* Replaced direct portal automation architecture with BHF-compliant EDI switch batching.
+* Updated test suite to execute against MFA-aware session authentication and encrypted model fields.
+
+### Fixed
+* Resolved `OperationalError: no such table: django_otp_staticdevice` by registering static token plugin migrations.
+* Resolved `NoReverseMatch` in administration sidebar on reference data routing.
+* Corrected currency filter precision to render South African Rands consistently (`R 1,234.56`).
+
+### Security
+* Deterministic AES-256 field encryption (`EncryptedCharField`) for South African national identity numbers and medical aid membership credentials.
+* `PHIReadLoggerMiddleware` capturing user context on read access to unmasked medical records.
+* Secret rotation and environment configuration isolation via `django-environ`.

@@ -4,23 +4,21 @@
 {% block title %}Generate Statements{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">
-                    <h4 class="mb-0">Generate Batch Statements</h4>
-                </div>
-                <div class="card-body">
-                    <form method="post">
-                        {% csrf_token %}
-                        {{ form|crispy }}
-                        <div class="d-grid gap-2 mt-4">
-                            <button type="submit" class="btn btn-primary">Generate Statements</button>
-                            <a href="{% url 'billing_collections:statement_list' %}" class="btn btn-secondary">Cancel</a>
-                        </div>
-                    </form>
-                </div>
+<div class="p-6">
+    <div class="max-w-2xl mx-auto">
+        <div class="bg-surface border border-gray-200 shadow-soft rounded-xl overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+                <h4 class="text-lg font-medium mb-0">Generate Batch Statements</h4>
+            </div>
+            <div class="p-6">
+                <form method="post">
+                    {% csrf_token %}
+                    {{ form|crispy }}
+                    <div class="mt-6 flex flex-col space-y-2">
+                        <button type="submit" class="w-full bg-accent text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors font-medium">Generate Statements</button>
+                        <a href="{% url 'billing_collections:statement_list' %}" class="w-full text-center bg-gray-100 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-200 transition-colors font-medium">Cancel</a>
+                    </div>
+                </form>
             </div>
         </div>
     </div>

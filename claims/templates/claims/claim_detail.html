@@ -2,236 +2,239 @@
 {% load currency_tags %}
 
 {% block content %}
-<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-    <h1 class="h2">Claim #{{ claim.id }}</h1>
-    <div class="btn-toolbar mb-2 mb-md-0">
-        <a href="{% url 'claims:update' claim.id %}" class="btn btn-sm btn-outline-secondary me-2">Edit</a>
+<div class="flex justify-between flex-wrap items-center pt-3 pb-2 mb-4 border-b border-gray-200">
+    <h1 class="text-2xl font-bold text-gray-900">Claim #{{ claim.id }}</h1>
+    <div class="flex gap-2 mb-2 md:mb-0">
+        <a href="{% url 'claims:update' claim.id %}" class="bg-gray-100 text-gray-700 px-3 py-1.5 rounded-md hover:bg-gray-200 transition-colors font-medium text-sm border border-gray-300">Edit</a>
         {% if claim.claim_status == 'draft' %}
-            <form method="post" action="{% url 'claims:rpa_submit' claim.id %}" class="d-inline me-2">
+            <form method="post" action="{% url 'claims:rpa_submit' claim.id %}" class="inline">
                 {% csrf_token %}
-                <button type="submit" class="btn btn-sm btn-success">
-                    <i class="bi bi-robot me-1"></i> Submit via Scheme Portal (RPA)
+                <button type="submit" class="bg-green-600 text-white px-3 py-1.5 rounded-md hover:bg-green-700 transition-colors font-medium text-sm flex items-center">
+                    <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 16 16"><path d="M6 12.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5ZM3 8.062C3 6.76 4.235 5.765 5.53 5.889a28.02 28.02 0 0 1 3.972.508 7.593 7.593 0 0 0-1.042-1.892 2.766 2.766 0 0 0-3.923-.526L3.633 4.792A1.996 1.996 0 0 0 2 6.55V8h1v.062ZM1 8H0v-.062c0-1.637 1.053-3.072 2.631-3.66L3.5 3.395A3.766 3.766 0 0 1 8.847 4.1a8.591 8.591 0 0 1 2.457 2.158c.277-.075.561-.137.85-.183.33-.053.649-.077.954-.077 1.258 0 2.222.569 2.753 1.255a2.531 2.531 0 0 1 .374 2.28 1.488 1.488 0 0 1-.295.592c-.145.18-.344.33-.586.416-.248.087-.55.127-.895.127h-2.152a5.452 5.452 0 0 1-1.022.094c-.456 0-.916-.046-1.353-.122a6.386 6.386 0 0 1-2.036-.71c-.722-.387-1.393-.97-1.782-1.79H2v.5a2 2 0 0 0 2 2h7a2 2 0 0 0 2-2V9h1v1.5a3 3 0 0 1-3 3H4a3 3 0 0 1-3-3V8Zm11.85-2.03c-.22-.03-.45-.045-.69-.045-.333 0-.663.028-.979.083a27.027 27.027 0 0 0-3.684.453 5.437 5.437 0 0 0 1.624 2.408c.552.441 1.22.754 1.884.957.382.116.794.182 1.206.182.263 0 .524-.02.775-.062a.495.495 0 0 0 .193-.06c.073-.043.123-.087.16-.142a1.537 1.537 0 0 0 .23-1.4c-.216-.403-.64-.78-1.298-.958a4.912 4.912 0 0 0-.495-.102c.073-.131.146-.263.22-.396.11-.197.23-.4.364-.593a10.026 10.026 0 0 0 .438-.684Z"/></svg>
+                    Submit via Scheme Portal (RPA)
                 </button>
             </form>
-            <form method="post" action="{% url 'claims:submit' claim.id %}" class="d-inline">
+            <form method="post" action="{% url 'claims:submit' claim.id %}" class="inline">
                 {% csrf_token %}
-                <button type="submit" class="btn btn-sm btn-outline-primary">Submit Standard</button>
+                <button type="submit" class="bg-white text-accent px-3 py-1.5 rounded-md hover:bg-gray-50 transition-colors font-medium text-sm border border-accent">Submit Standard</button>
             </form>
         {% elif claim.claim_status == 'submitted' or claim.claim_status == 'rejected' %}
-            <form method="post" action="{% url 'claims:rpa_submit' claim.id %}" class="d-inline">
+            <form method="post" action="{% url 'claims:rpa_submit' claim.id %}" class="inline">
                 {% csrf_token %}
-                <button type="submit" class="btn btn-sm btn-outline-success">
-                    <i class="bi bi-arrow-repeat me-1"></i> Resubmit via Scheme Portal (RPA)
+                <button type="submit" class="bg-white text-green-600 px-3 py-1.5 rounded-md hover:bg-green-50 transition-colors font-medium text-sm border border-green-600 flex items-center">
+                    <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/><path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/></svg>
+                    Resubmit via Scheme Portal (RPA)
                 </button>
             </form>
         {% endif %}
     </div>
 </div>
 
-<div class="row mb-4">
-    <div class="col-md-8">
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <span>Claim Information</span>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+    <div class="md:col-span-2">
+        <div class="bg-surface border border-gray-200 shadow-soft rounded-xl overflow-hidden h-full">
+            <div class="bg-gray-50 border-b border-gray-200 px-6 py-4 flex justify-between items-center">
+                <span class="text-gray-700 font-semibold">Claim Information</span>
                 <span>
                     {% if claim.claim_status == 'draft' %}
-                        <span class="badge bg-secondary">Draft</span>
+                        <span class="bg-gray-200 text-gray-800 text-xs px-2 py-1 rounded-full font-semibold">Draft</span>
                     {% elif claim.claim_status == 'submitted' %}
-                        <span class="badge bg-info">Submitted</span>
+                        <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full font-semibold">Submitted</span>
                     {% elif claim.claim_status == 'accepted' %}
-                        <span class="badge bg-primary">Accepted</span>
+                        <span class="bg-accent text-white text-xs px-2 py-1 rounded-full font-semibold">Accepted</span>
                     {% elif claim.claim_status == 'rejected' %}
-                        <span class="badge bg-danger">Rejected</span>
+                        <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full font-semibold">Rejected</span>
                     {% elif claim.claim_status == 'paid' %}
-                        <span class="badge bg-success">Paid in Full</span>
+                        <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full font-semibold">Paid in Full</span>
                     {% elif claim.claim_status == 'partially_paid' %}
-                        <span class="badge bg-warning text-dark">Partially Paid</span>
+                        <span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full font-semibold">Partially Paid</span>
                     {% elif claim.claim_status == 'appealed' %}
-                        <span class="badge bg-dark">Under Appeal</span>
+                        <span class="bg-gray-800 text-white text-xs px-2 py-1 rounded-full font-semibold">Under Appeal</span>
                     {% elif claim.claim_status == 'written_off' %}
-                        <span class="badge bg-secondary">Written Off</span>
+                        <span class="bg-gray-200 text-gray-800 text-xs px-2 py-1 rounded-full font-semibold">Written Off</span>
                     {% endif %}
                 </span>
             </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-6">
-                        <p><strong>Patient:</strong> <a href="#">{{ claim.patient }}</a></p>
-                        <p><strong>Practice:</strong> {{ claim.practice }}</p>
-                        <p><strong>Date of Service:</strong> {{ claim.date_of_service }}</p>
-                        <p><strong>Source Type:</strong> {{ claim.get_source_type_display }}</p>
+            <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-700">
+                    <div>
+                        <p class="mb-2"><strong class="font-semibold text-gray-900">Patient:</strong> <a href="#" class="text-accent hover:underline">{{ claim.patient }}</a></p>
+                        <p class="mb-2"><strong class="font-semibold text-gray-900">Practice:</strong> {{ claim.practice }}</p>
+                        <p class="mb-2"><strong class="font-semibold text-gray-900">Date of Service:</strong> {{ claim.date_of_service }}</p>
+                        <p class="mb-2"><strong class="font-semibold text-gray-900">Source Type:</strong> {{ claim.get_source_type_display }}</p>
                     </div>
-                    <div class="col-md-6">
-                        <p><strong>Referring Doctor:</strong> {{ claim.referring_doctor_name }} {% if claim.referring_doctor_bhf %}({{ claim.referring_doctor_bhf }}){% endif %}</p>
-                        <p><strong>Authorization Number:</strong> {{ claim.authorization_number|default:"None" }}</p>
-                        <p><strong>Switch / Portal Ref:</strong> 
+                    <div>
+                        <p class="mb-2"><strong class="font-semibold text-gray-900">Referring Doctor:</strong> {{ claim.referring_doctor_name }} {% if claim.referring_doctor_bhf %}({{ claim.referring_doctor_bhf }}){% endif %}</p>
+                        <p class="mb-2"><strong class="font-semibold text-gray-900">Authorization Number:</strong> {{ claim.authorization_number|default:"None" }}</p>
+                        <p class="mb-2"><strong class="font-semibold text-gray-900">Switch / Portal Ref:</strong> 
                             {% if claim.switch_reference_number %}
-                                <span class="font-monospace fw-bold">{{ claim.switch_reference_number }}</span>
+                                <span class="font-mono font-bold">{{ claim.switch_reference_number }}</span>
                                 {% if "DIR-" in claim.switch_reference_number %}
-                                    <span class="badge bg-success ms-1">Direct Portal (R0 Switch Fee)</span>
+                                    <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full ml-1 font-semibold">Direct Portal (R0 Switch Fee)</span>
                                 {% endif %}
                             {% else %}
-                                <span class="text-muted">Not submitted</span>
+                                <span class="text-gray-500">Not submitted</span>
                             {% endif %}
                         </p>
-                        <p><strong>Notes:</strong> {{ claim.notes|default:"None" }}</p>
+                        <p class="mb-0"><strong class="font-semibold text-gray-900">Notes:</strong> {{ claim.notes|default:"None" }}</p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card">
-            <div class="card-header">Source File</div>
-            <div class="card-body text-center">
+    <div class="md:col-span-1">
+        <div class="bg-surface border border-gray-200 shadow-soft rounded-xl overflow-hidden h-full">
+            <div class="bg-gray-50 border-b border-gray-200 px-6 py-4 text-gray-700 font-semibold">Source File</div>
+            <div class="p-6 text-center flex items-center justify-center h-full pb-16">
                 {% if claim.source_file %}
-                    <a href="{{ claim.source_file.url }}" target="_blank">
-                        <img src="{{ claim.source_file.url }}" alt="Source File" class="img-thumbnail" style="max-height: 150px;">
+                    <a href="{{ claim.source_file.url }}" target="_blank" class="block">
+                        <img src="{{ claim.source_file.url }}" alt="Source File" class="max-h-40 object-contain rounded-md border border-gray-200 p-1 shadow-sm mx-auto">
                     </a>
                 {% else %}
-                    <p class="text-muted">No source file attached.</p>
+                    <p class="text-gray-500">No source file attached.</p>
                 {% endif %}
             </div>
         </div>
     </div>
 </div>
 
-<h3 class="mb-3">Line Items</h3>
-<div class="table-responsive mb-4">
-    <table class="table table-bordered table-striped">
-        <thead class="table-light">
+<h3 class="text-xl font-bold text-gray-900 mb-3">Line Items</h3>
+<div class="bg-surface border border-gray-200 shadow-soft rounded-xl overflow-hidden mb-6 overflow-x-auto">
+    <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
             <tr>
-                <th>Tariff Code</th>
-                <th>Description</th>
-                <th>ICD-10 (Pri/Sec)</th>
-                <th>Qty</th>
-                <th>Amount Billed</th>
-                <th>Amount Paid</th>
-                <th>Patient Liable</th>
-                <th>Status</th>
-                <th>Rejection Code</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tariff Code</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ICD-10 (Pri/Sec)</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Qty</th>
+                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Amount Billed</th>
+                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Amount Paid</th>
+                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Patient Liable</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rejection Code</th>
             </tr>
         </thead>
-        <tbody>
+        <tbody class="bg-white divide-y divide-gray-200">
             {% for item in line_items %}
-            <tr>
-                <td>{{ item.tariff_code }}</td>
-                <td>{{ item.tariff_description }}</td>
-                <td>{{ item.icd10_primary }}{% if item.icd10_secondary %} / {{ item.icd10_secondary }}{% endif %}</td>
-                <td>{{ item.quantity }}</td>
-                <td class="text-end">{{ item.amount_billed|rands }}</td>
-                <td class="text-end text-success">{{ item.amount_paid|rands }}</td>
-                <td class="text-end">{{ item.amount_patient_liable|rands }}</td>
-                <td>
+            <tr class="{% cycle 'bg-white' 'bg-gray-50' %}">
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ item.tariff_code }}</td>
+                <td class="px-6 py-4 text-sm text-gray-700">{{ item.tariff_description }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ item.icd10_primary }}{% if item.icd10_secondary %} / {{ item.icd10_secondary }}{% endif %}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ item.quantity }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 text-right">{{ item.amount_billed|rands }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-green-600 font-medium text-right">{{ item.amount_paid|rands }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 text-right">{{ item.amount_patient_liable|rands }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm">
                     {% if item.line_status == 'pending' %}
-                        <span class="badge bg-secondary">Pending</span>
+                        <span class="bg-gray-200 text-gray-800 text-xs px-2 py-1 rounded-full font-semibold">Pending</span>
                     {% elif item.line_status == 'paid' %}
-                        <span class="badge bg-success">Paid in Full</span>
+                        <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full font-semibold">Paid in Full</span>
                     {% elif item.line_status == 'short_paid' %}
-                        <span class="badge bg-warning text-dark">Short Paid</span>
+                        <span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full font-semibold">Short Paid</span>
                     {% elif item.line_status == 'rejected' %}
-                        <span class="badge bg-danger">Rejected</span>
+                        <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full font-semibold">Rejected</span>
                     {% elif item.line_status == 'appealed' %}
-                        <span class="badge bg-dark">Under Appeal</span>
+                        <span class="bg-gray-800 text-white text-xs px-2 py-1 rounded-full font-semibold">Under Appeal</span>
                     {% endif %}
                 </td>
-                <td>{{ item.rejection_code }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ item.rejection_code }}</td>
             </tr>
             {% empty %}
             <tr>
-                <td colspan="9" class="text-center">No line items for this claim.</td>
+                <td colspan="9" class="px-6 py-4 text-center text-sm text-gray-500">No line items for this claim.</td>
             </tr>
             {% endfor %}
         </tbody>
-        <tfoot class="table-group-divider">
-            <tr class="fw-bold">
-                <td colspan="4" class="text-end">Totals:</td>
-                <td class="text-end">{{ claim.total_billed|rands }}</td>
-                <td class="text-end text-success">{{ claim.total_paid|rands }}</td>
-                <td class="text-end">{{ claim.total_patient_liable|rands }}</td>
+        <tfoot class="border-t-2 border-gray-300 bg-gray-50 font-bold text-gray-900">
+            <tr>
+                <td colspan="4" class="px-6 py-3 text-right">Totals:</td>
+                <td class="px-6 py-3 text-right">{{ claim.total_billed|rands }}</td>
+                <td class="px-6 py-3 text-right text-green-600">{{ claim.total_paid|rands }}</td>
+                <td class="px-6 py-3 text-right">{{ claim.total_patient_liable|rands }}</td>
                 <td colspan="2"></td>
             </tr>
         </tfoot>
     </table>
 </div>
 
-<div class="row">
-    <div class="col-md-6">
-        <div class="card mb-4">
-            <div class="card-header">Assignment & Priority</div>
-            <div class="card-body">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+    <div class="space-y-6">
+        <div class="bg-surface border border-gray-200 shadow-soft rounded-xl overflow-hidden">
+            <div class="bg-gray-50 border-b border-gray-200 px-6 py-4 text-gray-700 font-semibold">Assignment & Priority</div>
+            <div class="p-6">
                 <form method="post" action="{% url 'claims:assign' claim.id %}">
                     {% csrf_token %}
-                    <div class="mb-3">
-                        <label class="form-label">Assigned To</label>
-                        <select name="assigned_to" class="form-select form-select-sm">
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Assigned To</label>
+                        <select name="assigned_to" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:ring-accent focus:border-accent sm:text-sm">
                             <option value="">-- Unassigned --</option>
                             {% for user in users %}
                                 <option value="{{ user.id }}" {% if claim.assigned_to_id == user.id %}selected{% endif %}>{{ user.username }}</option>
                             {% endfor %}
                         </select>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Internal Priority</label>
-                        <select name="internal_priority" class="form-select form-select-sm">
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Internal Priority</label>
+                        <select name="internal_priority" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:ring-accent focus:border-accent sm:text-sm">
                             <option value="low" {% if claim.internal_priority == 'low' %}selected{% endif %}>Low</option>
                             <option value="medium" {% if claim.internal_priority == 'medium' %}selected{% endif %}>Medium</option>
                             <option value="high" {% if claim.internal_priority == 'high' %}selected{% endif %}>High</option>
                         </select>
                     </div>
-                    <button type="submit" class="btn btn-sm btn-primary">Update Assignment</button>
+                    <button type="submit" class="bg-accent text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors font-medium text-sm">Update Assignment</button>
                 </form>
             </div>
         </div>
 
-        <div class="card">
-            <div class="card-header">Notes Timeline</div>
-            <div class="card-body">
-                <div class="mb-3">
+        <div class="bg-surface border border-gray-200 shadow-soft rounded-xl overflow-hidden">
+            <div class="bg-gray-50 border-b border-gray-200 px-6 py-4 text-gray-700 font-semibold">Notes Timeline</div>
+            <div class="p-6">
+                <div class="mb-4">
                     <form method="post" action="{% url 'claims:add_note' claim.id %}">
                         {% csrf_token %}
-                        <div class="input-group">
-                            <textarea name="text" class="form-control" rows="2" placeholder="Add a note..." required></textarea>
-                            <button class="btn btn-outline-secondary" type="submit">Add</button>
+                        <div class="flex rounded-md shadow-sm">
+                            <textarea name="text" rows="2" class="flex-1 min-w-0 block w-full px-3 py-2 rounded-none rounded-l-md border border-gray-300 focus:ring-accent focus:border-accent sm:text-sm" placeholder="Add a note..." required></textarea>
+                            <button type="submit" class="inline-flex items-center px-4 py-2 border border-l-0 border-gray-300 rounded-r-md bg-gray-50 text-gray-700 hover:bg-gray-100 font-medium text-sm transition-colors">Add</button>
                         </div>
                     </form>
                 </div>
-                <div class="list-group list-group-flush">
+                <div class="divide-y divide-gray-200">
                     {% for note in notes %}
-                    <div class="list-group-item px-0">
-                        <div class="d-flex w-100 justify-content-between">
-                            <small class="text-muted">{{ note.author.username }}</small>
-                            <small class="text-muted">{{ note.created_at|date:"M d, H:i" }}</small>
+                    <div class="py-3">
+                        <div class="flex justify-between text-xs text-gray-500 mb-1">
+                            <span>{{ note.author.username }}</span>
+                            <span>{{ note.created_at|date:"M d, H:i" }}</span>
                         </div>
-                        <p class="mb-1">{{ note.text|linebreaksbr }}</p>
+                        <p class="text-sm text-gray-800 mb-0">{{ note.text|linebreaksbr }}</p>
                     </div>
                     {% empty %}
-                    <p class="text-muted mb-0">No notes yet.</p>
+                    <p class="text-gray-500 text-sm py-3 mb-0">No notes yet.</p>
                     {% endfor %}
                 </div>
             </div>
         </div>
     </div>
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">Financial Summary</div>
-            <div class="card-body">
-                <table class="table table-sm borderless mb-0">
-                    <tr>
-                        <th>Total Billed:</th>
-                        <td class="text-end fw-semibold">{{ claim.total_billed|rands }}</td>
+    
+    <div>
+        <div class="bg-surface border border-gray-200 shadow-soft rounded-xl overflow-hidden">
+            <div class="bg-gray-50 border-b border-gray-200 px-6 py-4 text-gray-700 font-semibold">Financial Summary</div>
+            <div class="p-6">
+                <table class="w-full text-sm">
+                    <tr class="border-b border-gray-100">
+                        <th class="py-2 text-left font-medium text-gray-700">Total Billed:</th>
+                        <td class="py-2 text-right font-semibold text-gray-900">{{ claim.total_billed|rands }}</td>
+                    </tr>
+                    <tr class="border-b border-gray-100">
+                        <th class="py-2 text-left font-medium text-gray-700">Total Paid:</th>
+                        <td class="py-2 text-right font-semibold text-green-600">{{ claim.total_paid|rands }}</td>
                     </tr>
                     <tr>
-                        <th>Total Paid:</th>
-                        <td class="text-end text-success fw-semibold">{{ claim.total_paid|rands }}</td>
+                        <th class="py-2 text-left font-medium text-gray-700">Total Patient Liable:</th>
+                        <td class="py-2 text-right text-gray-900">{{ claim.total_patient_liable|rands }}</td>
                     </tr>
-                    <tr>
-                        <th>Total Patient Liable:</th>
-                        <td class="text-end">{{ claim.total_patient_liable|rands }}</td>
-                    </tr>
-                    <tr class="fs-5 fw-bold border-top mt-2">
-                        <th>Outstanding Balance:</th>
-                        <td class="text-end {% if claim.outstanding_balance > 0 %}text-danger{% else %}text-muted{% endif %}">{{ claim.outstanding_balance|rands }}</td>
+                    <tr class="border-t-2 border-gray-200 text-lg">
+                        <th class="py-3 text-left font-bold text-gray-900 mt-2">Outstanding Balance:</th>
+                        <td class="py-3 text-right font-bold {% if claim.outstanding_balance > 0 %}text-red-600{% else %}text-gray-500{% endif %} mt-2">{{ claim.outstanding_balance|rands }}</td>
                     </tr>
                 </table>
             </div>
@@ -239,92 +242,103 @@
     </div>
 </div>
 
-<div class="row mt-4">
-    <div class="col-12">
-        <div class="card shadow-sm">
-            <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
-                <span class="fw-bold"><i class="bi bi-robot me-2 text-primary"></i>Direct Scheme Portal Submissions (Switch Bypass RPA)</span>
-                {% if rpa_logs %}
-                    <span class="badge bg-secondary">{{ rpa_logs.count }} submission{{ rpa_logs.count|pluralize }}</span>
-                {% endif %}
-            </div>
-            <div class="card-body">
-                {% if rpa_logs %}
-                    <div class="table-responsive">
-                        <table class="table table-sm table-hover align-middle mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Timestamp</th>
-                                    <th>Administrator / Portal</th>
-                                    <th>Reference Number</th>
-                                    <th>Status</th>
-                                    <th>Duration</th>
-                                    <th>Response Message</th>
-                                    <th>Visual Proof</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for log in rpa_logs %}
-                                <tr>
-                                    <td class="small">{{ log.created_at|date:"Y-m-d H:i:s" }}</td>
-                                    <td class="fw-semibold">{{ log.portal_name }}</td>
-                                    <td>
-                                        {% if log.reference_number %}
-                                            <span class="font-monospace fw-bold text-primary">{{ log.reference_number }}</span>
-                                        {% else %}
-                                            <span class="text-muted">-</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if log.success %}
-                                            <span class="badge bg-success">Success</span>
-                                        {% else %}
-                                            <span class="badge bg-danger">Failed</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>{{ log.execution_time_seconds }}s</td>
-                                    <td class="small text-muted">{{ log.message }}</td>
-                                    <td>
-                                        {% if log.screenshot %}
-                                            <button type="button" class="btn btn-xs btn-outline-primary py-0 px-2" data-bs-toggle="modal" data-bs-target="#screenshotModal{{ log.id }}">
-                                                <i class="bi bi-camera me-1"></i> View Proof
-                                            </button>
+<div class="mb-8">
+    <div class="bg-surface border border-gray-200 shadow-soft rounded-xl overflow-hidden">
+        <div class="bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center">
+            <span class="font-bold flex items-center text-gray-900">
+                <svg class="w-5 h-5 text-accent mr-2" fill="currentColor" viewBox="0 0 16 16"><path d="M6 12.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5ZM3 8.062C3 6.76 4.235 5.765 5.53 5.889a28.02 28.02 0 0 1 3.972.508 7.593 7.593 0 0 0-1.042-1.892 2.766 2.766 0 0 0-3.923-.526L3.633 4.792A1.996 1.996 0 0 0 2 6.55V8h1v.062ZM1 8H0v-.062c0-1.637 1.053-3.072 2.631-3.66L3.5 3.395A3.766 3.766 0 0 1 8.847 4.1a8.591 8.591 0 0 1 2.457 2.158c.277-.075.561-.137.85-.183.33-.053.649-.077.954-.077 1.258 0 2.222.569 2.753 1.255a2.531 2.531 0 0 1 .374 2.28 1.488 1.488 0 0 1-.295.592c-.145.18-.344.33-.586.416-.248.087-.55.127-.895.127h-2.152a5.452 5.452 0 0 1-1.022.094c-.456 0-.916-.046-1.353-.122a6.386 6.386 0 0 1-2.036-.71c-.722-.387-1.393-.97-1.782-1.79H2v.5a2 2 0 0 0 2 2h7a2 2 0 0 0 2-2V9h1v1.5a3 3 0 0 1-3 3H4a3 3 0 0 1-3-3V8Zm11.85-2.03c-.22-.03-.45-.045-.69-.045-.333 0-.663.028-.979.083a27.027 27.027 0 0 0-3.684.453 5.437 5.437 0 0 0 1.624 2.408c.552.441 1.22.754 1.884.957.382.116.794.182 1.206.182.263 0 .524-.02.775-.062a.495.495 0 0 0 .193-.06c.073-.043.123-.087.16-.142a1.537 1.537 0 0 0 .23-1.4c-.216-.403-.64-.78-1.298-.958a4.912 4.912 0 0 0-.495-.102c.073-.131.146-.263.22-.396.11-.197.23-.4.364-.593a10.026 10.026 0 0 0 .438-.684Z"/></svg>
+                Direct Scheme Portal Submissions (Switch Bypass RPA)
+            </span>
+            {% if rpa_logs %}
+                <span class="bg-gray-200 text-gray-800 text-xs px-2 py-1 rounded-full">{{ rpa_logs.count }} submission{{ rpa_logs.count|pluralize }}</span>
+            {% endif %}
+        </div>
+        <div class="p-6">
+            {% if rpa_logs %}
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Timestamp</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Administrator / Portal</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reference Number</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Duration</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Response Message</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Visual Proof</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for log in rpa_logs %}
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-500">{{ log.created_at|date:"Y-m-d H:i:s" }}</td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm font-semibold text-gray-900">{{ log.portal_name }}</td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm">
+                                    {% if log.reference_number %}
+                                        <span class="font-mono font-bold text-accent">{{ log.reference_number }}</span>
+                                    {% else %}
+                                        <span class="text-gray-400">-</span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm">
+                                    {% if log.success %}
+                                        <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">Success</span>
+                                    {% else %}
+                                        <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">Failed</span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700">{{ log.execution_time_seconds }}s</td>
+                                <td class="px-4 py-3 text-xs text-gray-500 max-w-xs truncate">{{ log.message }}</td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm">
+                                    {% if log.screenshot %}
+                                        <button type="button" class="border border-accent text-accent px-2 py-1 rounded-md hover:bg-blue-50 transition-colors text-xs flex items-center" onclick="document.getElementById('screenshotModal{{ log.id }}').classList.remove('hidden')">
+                                            <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 16 16"><path d="M15 12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h1.172a3 3 0 0 0 2.12-.879l.83-.828A1 1 0 0 1 6.827 3h2.344a1 1 0 0 1 .707.293l.828.828A3 3 0 0 0 12.828 5H14a1 1 0 0 1 1 1v6zM2 4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-1.172a2 2 0 0 1-1.414-.586l-.828-.828A2 2 0 0 0 9.172 2H6.828a2 2 0 0 0-1.414.586l-.828.828A2 2 0 0 1 3.172 4H2z"/><path d="M8 11a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5zm0 1a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM3 6.5a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0z"/></svg>
+                                            View Proof
+                                        </button>
 
-                                            <!-- Screenshot Modal -->
-                                            <div class="modal fade" id="screenshotModal{{ log.id }}" tabindex="-1" aria-labelledby="screenshotModalLabel{{ log.id }}" aria-hidden="true">
-                                                <div class="modal-dialog modal-xl modal-dialog-centered">
-                                                    <div class="modal-content">
-                                                        <div class="modal-header">
-                                                            <h5 class="modal-title" id="screenshotModalLabel{{ log.id }}">
+                                        <!-- Screenshot Modal -->
+                                        <div id="screenshotModal{{ log.id }}" class="fixed inset-0 z-50 overflow-y-auto hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+                                            <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                                                <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" onclick="document.getElementById('screenshotModal{{ log.id }}').classList.add('hidden')"></div>
+                                                <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+                                                <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-5xl w-full">
+                                                    <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4 border-b border-gray-200">
+                                                        <div class="flex justify-between items-center">
+                                                            <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">
                                                                 Portal Proof: {{ log.portal_name }} (Ref: {{ log.reference_number }})
-                                                            </h5>
-                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                            </h3>
+                                                            <button type="button" class="text-gray-400 hover:text-gray-500" onclick="document.getElementById('screenshotModal{{ log.id }}').classList.add('hidden')">
+                                                                <span class="sr-only">Close</span>
+                                                                <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                                                </svg>
+                                                            </button>
                                                         </div>
-                                                        <div class="modal-body text-center bg-light p-3">
-                                                            <img src="{{ log.screenshot.url }}" class="img-fluid rounded border shadow-sm" alt="Submission Proof Screenshot">
-                                                        </div>
-                                                        <div class="modal-footer d-flex justify-content-between">
-                                                            <span class="text-muted small">Submitted directly via headless browser on {{ log.created_at|date:"Y-m-d H:i:s" }} (Bypassed switch fees)</span>
-                                                            <a href="{{ log.screenshot.url }}" target="_blank" class="btn btn-sm btn-outline-secondary">Open Full Image</a>
-                                                        </div>
+                                                    </div>
+                                                    <div class="bg-gray-100 px-4 py-5 sm:p-6 text-center">
+                                                        <img src="{{ log.screenshot.url }}" class="max-w-full h-auto rounded border shadow-sm mx-auto" alt="Submission Proof Screenshot">
+                                                    </div>
+                                                    <div class="bg-gray-50 px-4 py-3 sm:px-6 flex justify-between items-center">
+                                                        <span class="text-gray-500 text-xs">Submitted directly via headless browser on {{ log.created_at|date:"Y-m-d H:i:s" }} (Bypassed switch fees)</span>
+                                                        <a href="{{ log.screenshot.url }}" target="_blank" class="bg-white border border-gray-300 text-gray-700 px-3 py-1.5 rounded-md hover:bg-gray-50 transition-colors text-sm font-medium">Open Full Image</a>
                                                     </div>
                                                 </div>
                                             </div>
-                                        {% else %}
-                                            <span class="text-muted small">No screenshot</span>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                {% else %}
-                    <div class="text-muted small py-2">
-                        No direct scheme portal submissions have been recorded for this claim yet. Click <strong>Submit via Scheme Portal (RPA)</strong> to submit directly to the medical scheme administrator web gateway without commercial switch fees.
-                    </div>
-                {% endif %}
-            </div>
+                                        </div>
+                                    {% else %}
+                                        <span class="text-gray-400 text-xs">No screenshot</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-gray-500 text-sm py-2">
+                    No direct scheme portal submissions have been recorded for this claim yet. Click <strong class="font-semibold text-gray-700">Submit via Scheme Portal (RPA)</strong> to submit directly to the medical scheme administrator web gateway without commercial switch fees.
+                </div>
+            {% endif %}
         </div>
     </div>
 </div>

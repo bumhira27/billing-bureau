@@ -1,75 +1,78 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="container mt-4">
-    <h2>Remittance File: {{ file.file_name }}</h2>
+<div class="container mx-auto px-4 py-8">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6">Remittance File: {{ file.file_name }}</h2>
     
-    <div class="card mb-4">
-        <div class="card-body">
-            <p><strong>Switch:</strong> {{ file.get_switch_provider_display }}</p>
-            <p><strong>Date:</strong> {{ file.received_date }}</p>
-            <p><strong>Status:</strong> {{ file.get_processed_status_display }}</p>
-            <p><strong>Total Records:</strong> {{ file.total_records }}</p>
-            <p><strong>Matched:</strong> {{ file.records_matched }} | <strong>Unmatched:</strong> {{ file.records_unmatched }}</p>
-            
-            <div class="progress">
-                {% if file.total_records > 0 %}
-                <div class="progress-bar bg-success" role="progressbar" style="width: {% widthratio file.records_matched file.total_records 100 %}%">
-                    {% widthratio file.records_matched file.total_records 100 %}%
-                </div>
-                {% endif %}
-            </div>
+    <div class="bg-surface border border-gray-200 shadow-soft rounded-xl p-6 mb-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <p class="text-sm text-gray-700"><strong class="font-medium text-gray-900">Switch:</strong> {{ file.get_switch_provider_display }}</p>
+            <p class="text-sm text-gray-700"><strong class="font-medium text-gray-900">Date:</strong> {{ file.received_date }}</p>
+            <p class="text-sm text-gray-700"><strong class="font-medium text-gray-900">Status:</strong> {{ file.get_processed_status_display }}</p>
+            <p class="text-sm text-gray-700"><strong class="font-medium text-gray-900">Total Records:</strong> {{ file.total_records }}</p>
+            <p class="text-sm text-gray-700 col-span-1 md:col-span-2"><strong class="font-medium text-gray-900">Matched:</strong> {{ file.records_matched }} | <strong class="font-medium text-gray-900">Unmatched:</strong> {{ file.records_unmatched }}</p>
         </div>
+        
+        <div class="mt-4 bg-gray-200 rounded-full h-2.5 overflow-hidden">
+            {% if file.total_records > 0 %}
+            <div class="bg-green-500 h-2.5 rounded-full" style="width: {% widthratio file.records_matched file.total_records 100 %}%"></div>
+            {% endif %}
+        </div>
+        {% if file.total_records > 0 %}
+        <p class="text-xs text-gray-500 mt-1 text-right">{% widthratio file.records_matched file.total_records 100 %}%</p>
+        {% endif %}
     </div>
 
-    <h4>Lines</h4>
-    <table class="table table-sm table-striped">
-        <thead>
-            <tr>
-                <th>Practice No</th>
-                <th>Scheme</th>
-                <th>Member No</th>
-                <th>Dep</th>
-                <th>Patient</th>
-                <th>Date</th>
-                <th>Tariff</th>
-                <th>Claimed</th>
-                <th>Approved</th>
-                <th>Paid</th>
-                <th>Reason</th>
-                <th>Status</th>
-                <th>Matched To</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for line in lines %}
-            <tr>
-                <td>{{ line.practice_number }}</td>
-                <td>{{ line.scheme_name }}</td>
-                <td>{{ line.membership_number }}</td>
-                <td>{{ line.dependent_code }}</td>
-                <td>{{ line.patient_name }}</td>
-                <td>{{ line.date_of_service|date:"Y-m-d" }}</td>
-                <td>{{ line.tariff_code }}</td>
-                <td class="text-end">{{ line.amount_claimed|rands }}</td>
-                <td class="text-end">{{ line.amount_approved|rands }}</td>
-                <td class="text-end text-success fw-semibold">{{ line.amount_paid|rands }}</td>
-                <td>{{ line.reason_code }}</td>
-                <td>
-                    <span class="badge {% if line.match_status == 'unmatched' %}bg-danger{% else %}bg-success{% endif %}">
-                        {{ line.get_match_status_display }}
-                    </span>
-                </td>
-                <td>
-                    {% if line.matched_claim_line_item %}
-                        Claim ID: {{ line.matched_claim_line_item.claim.id }}
-                    {% else %}
-                        <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#matchModal{{ line.id }}">Match</button>
-                    {% endif %}
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <h4 class="text-lg font-bold text-gray-900 mb-4">Lines</h4>
+    <div class="overflow-x-auto bg-surface border border-gray-200 shadow-soft rounded-xl">
+        <table class="min-w-full divide-y divide-gray-200 text-sm">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Practice No</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Scheme</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Member No</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dep</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Patient</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tariff</th>
+                    <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Claimed</th>
+                    <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Approved</th>
+                    <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Paid</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reason</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Matched To</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for line in lines %}
+                <tr class="hover:bg-gray-50">
+                    <td class="px-4 py-3 whitespace-nowrap text-gray-900">{{ line.practice_number }}</td>
+                    <td class="px-4 py-3 whitespace-nowrap text-gray-500">{{ line.scheme_name }}</td>
+                    <td class="px-4 py-3 whitespace-nowrap text-gray-500">{{ line.membership_number }}</td>
+                    <td class="px-4 py-3 whitespace-nowrap text-gray-500">{{ line.dependent_code }}</td>
+                    <td class="px-4 py-3 whitespace-nowrap text-gray-500">{{ line.patient_name }}</td>
+                    <td class="px-4 py-3 whitespace-nowrap text-gray-500">{{ line.date_of_service|date:"Y-m-d" }}</td>
+                    <td class="px-4 py-3 whitespace-nowrap text-gray-500">{{ line.tariff_code }}</td>
+                    <td class="px-4 py-3 whitespace-nowrap text-gray-500 text-right">{{ line.amount_claimed|rands }}</td>
+                    <td class="px-4 py-3 whitespace-nowrap text-gray-500 text-right">{{ line.amount_approved|rands }}</td>
+                    <td class="px-4 py-3 whitespace-nowrap text-green-600 font-semibold text-right">{{ line.amount_paid|rands }}</td>
+                    <td class="px-4 py-3 whitespace-nowrap text-gray-500">{{ line.reason_code }}</td>
+                    <td class="px-4 py-3 whitespace-nowrap">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {% if line.match_status == 'unmatched' %}bg-red-100 text-red-800{% else %}bg-green-100 text-green-800{% endif %}">
+                            {{ line.get_match_status_display }}
+                        </span>
+                    </td>
+                    <td class="px-4 py-3 whitespace-nowrap text-gray-500">
+                        {% if line.matched_claim_line_item %}
+                            Claim ID: {{ line.matched_claim_line_item.claim.id }}
+                        {% else %}
+                            <button class="border border-blue-600 text-blue-600 hover:bg-blue-50 px-2 py-1 rounded text-xs transition-colors" data-bs-toggle="modal" data-bs-target="#matchModal{{ line.id }}">Match</button>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </div>
 {% endblock %}

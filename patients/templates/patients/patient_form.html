@@ -2,11 +2,11 @@
 {% load crispy_forms_tags %}
 
 {% block content %}
-<h2>{% if form.instance.pk %}Edit Patient{% else %}Add Patient{% endif %}</h2>
-<div class="card">
-    <div class="card-body">
+<h2 class="text-2xl font-semibold text-gray-900 mb-6">{% if form.instance.pk %}Edit Patient{% else %}Add Patient{% endif %}</h2>
+<div class="bg-surface border border-gray-200 shadow-soft rounded-xl p-6">
+    <div class="space-y-4">
         {% crispy form %}
-        <a href="{% if form.instance.pk %}{% url 'patients:detail' form.instance.pk %}{% else %}{% url 'patients:list' %}{% endif %}" class="btn btn-secondary mt-3">Cancel</a>
+        <a href="{% if form.instance.pk %}{% url 'patients:detail' form.instance.pk %}{% else %}{% url 'patients:list' %}{% endif %}" class="inline-block mt-4 bg-gray-100 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-200 transition-colors font-medium">Cancel</a>
     </div>
 </div>
 {% endblock %}

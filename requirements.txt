@@ -13,3 +13,11 @@ whitenoise==6.7.0
 django-environ==0.11.2
 django-auditlog==3.0.0
 django-jazzmin==3.0.5
+django-otp==1.7.3
+django-two-factor-auth==1.17.0
+django-formtools==2.5.1
+django-phonenumber-field==8.5.0
+phonenumbers==9.0.39
+qrcode==7.4.2
+google-genai==1.14.0
+pydantic==2.11.3

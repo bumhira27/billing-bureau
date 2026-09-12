@@ -1,87 +1,95 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>{{ patient.full_name }}</h2>
-    <a href="{% url 'patients:update' patient.pk %}" class="btn btn-warning">Edit Patient</a>
+<div class="flex justify-between items-center mb-6">
+    <h2 class="text-2xl font-semibold text-gray-900">{{ patient.full_name }}</h2>
+    <a href="{% url 'patients:update' patient.pk %}" class="bg-yellow-500 text-white px-4 py-2 rounded-md hover:bg-yellow-600 transition-colors font-medium">Edit Patient</a>
 </div>
 
-<div class="row">
-    <div class="col-md-6">
-        <div class="card mb-4">
-            <div class="card-header">Personal Details</div>
-            <div class="card-body">
-                <p><strong>Practice:</strong> {{ patient.practice.practice_name }}</p>
-                <p><strong>ID Number:</strong> {{ patient.id_number }}</p>
-                <p><strong>Date of Birth:</strong> {{ patient.date_of_birth }}</p>
-                <p><strong>Gender:</strong> {{ patient.get_gender_display }}</p>
-                <p><strong>Phone:</strong> {{ patient.phone }}</p>
-                <p><strong>Email:</strong> {{ patient.email }}</p>
-                <p><strong>Address:</strong> {{ patient.physical_address }} {{ patient.postal_code }}</p>
-            </div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+    <!-- Personal Details -->
+    <div class="bg-surface border border-gray-200 shadow-soft rounded-xl overflow-hidden">
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200 font-medium text-gray-700">Personal Details</div>
+        <div class="p-6 space-y-3">
+            <p><strong class="text-gray-900">Practice:</strong> <span class="text-gray-600">{{ patient.practice.practice_name }}</span></p>
+            <p><strong class="text-gray-900">ID Number:</strong> <span class="text-gray-600">{{ patient.id_number }}</span></p>
+            <p><strong class="text-gray-900">Date of Birth:</strong> <span class="text-gray-600">{{ patient.date_of_birth }}</span></p>
+            <p><strong class="text-gray-900">Gender:</strong> <span class="text-gray-600">{{ patient.get_gender_display }}</span></p>
+            <p><strong class="text-gray-900">Phone:</strong> <span class="text-gray-600">{{ patient.phone }}</span></p>
+            <p><strong class="text-gray-900">Email:</strong> <span class="text-gray-600">{{ patient.email }}</span></p>
+            <p><strong class="text-gray-900">Address:</strong> <span class="text-gray-600">{{ patient.physical_address }} {{ patient.postal_code }}</span></p>
         </div>
     </div>
-    <div class="col-md-6">
-        <div class="card mb-4">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <span>Scheme Memberships</span>
-                <a href="{% url 'patients:add_scheme' patient.pk %}" class="btn btn-sm btn-primary">Add Scheme</a>
+    
+    <div class="space-y-6">
+        <!-- Scheme Memberships -->
+        <div class="bg-surface border border-gray-200 shadow-soft rounded-xl overflow-hidden">
+            <div class="bg-gray-50 px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                <span class="font-medium text-gray-700">Scheme Memberships</span>
+                <a href="{% url 'patients:add_scheme' patient.pk %}" class="bg-accent text-white px-3 py-1 text-sm rounded-md hover:bg-blue-700 transition-colors font-medium">Add Scheme</a>
             </div>
-            <div class="card-body">
+            <div class="p-0">
                 {% if schemes %}
-                    <ul class="list-group">
+                    <ul class="divide-y divide-gray-200">
                     {% for scheme in schemes %}
-                        <li class="list-group-item">
-                            <strong>{{ scheme.scheme_name }}</strong> - {{ scheme.membership_number }}
-                            {% if scheme.is_active %}<span class="badge bg-success float-end">Active</span>{% else %}<span class="badge bg-secondary float-end">Inactive</span>{% endif %}
+                        <li class="px-6 py-4 flex justify-between items-center">
+                            <div>
+                                <strong class="text-gray-900">{{ scheme.scheme_name }}</strong> <span class="text-gray-500">- {{ scheme.membership_number }}</span>
+                            </div>
+                            {% if scheme.is_active %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Active</span>
+                            {% else %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">Inactive</span>
+                            {% endif %}
                         </li>
                     {% endfor %}
                     </ul>
                 {% else %}
-                    <p>No schemes recorded.</p>
+                    <p class="p-6 text-gray-500">No schemes recorded.</p>
                 {% endif %}
             </div>
         </div>
         
-        <div class="card mb-4 shadow-sm border-0">
-            <div class="card-header bg-white py-3 fw-bold small text-uppercase">Outstanding Balance</div>
-            <div class="card-body">
-                <p class="fs-4 text-danger fw-bold mb-0">{{ outstanding_balance|rands }}</p>
+        <!-- Outstanding Balance -->
+        <div class="bg-surface border border-gray-200 shadow-soft rounded-xl overflow-hidden">
+            <div class="bg-white px-6 py-3 border-b border-gray-200 font-bold text-xs text-gray-500 uppercase tracking-wider">Outstanding Balance</div>
+            <div class="p-6">
+                <p class="text-2xl font-bold text-red-600 mb-0">{{ outstanding_balance|rands }}</p>
             </div>
         </div>
     </div>
 </div>
 
-<div class="card shadow-sm border-0">
-    <div class="card-header bg-white py-3 fw-bold small text-uppercase">Claims History</div>
-    <div class="card-body p-0">
+<div class="bg-surface border border-gray-200 shadow-soft rounded-xl overflow-hidden mb-6">
+    <div class="bg-white px-6 py-3 border-b border-gray-200 font-bold text-xs text-gray-500 uppercase tracking-wider">Claims History</div>
+    <div class="p-0">
         {% if claims %}
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-light">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
                     <tr>
-                        <th>Claim ID</th>
-                        <th>Date of Service</th>
-                        <th>Status</th>
-                        <th class="text-end">Billed</th>
-                        <th class="text-end">Paid</th>
-                        <th class="text-end">Outstanding</th>
-                        <th class="text-center">Action</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Claim ID</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date of Service</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Billed</th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Paid</th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Outstanding</th>
+                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody class="bg-white divide-y divide-gray-200">
                     {% for c in claims %}
-                    <tr>
-                        <td class="fw-bold"><a href="{% url 'claims:detail' c.id %}">#{{ c.id }}</a></td>
-                        <td>{{ c.date_of_service|date:"Y-m-d" }}</td>
-                        <td>
-                            <span class="badge bg-secondary">{{ c.get_claim_status_display }}</span>
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900"><a href="{% url 'claims:detail' c.id %}" class="text-accent hover:underline">#{{ c.id }}</a></td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ c.date_of_service|date:"Y-m-d" }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">{{ c.get_claim_status_display }}</span>
                         </td>
-                        <td class="text-end">{{ c.total_billed|rands }}</td>
-                        <td class="text-end text-success">{{ c.total_paid|rands }}</td>
-                        <td class="text-end text-danger">{{ c.outstanding_balance|rands }}</td>
-                        <td class="text-center">
-                            <a href="{% url 'claims:detail' c.id %}" class="btn btn-sm btn-outline-primary py-0 px-2">View</a>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900">{{ c.total_billed|rands }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-green-600">{{ c.total_paid|rands }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-red-600">{{ c.outstanding_balance|rands }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
+                            <a href="{% url 'claims:detail' c.id %}" class="inline-flex items-center px-2 py-1 border border-accent text-accent rounded-md hover:bg-accent hover:text-white transition-colors text-xs">View</a>
                         </td>
                     </tr>
                     {% endfor %}
@@ -89,7 +97,7 @@
             </table>
         </div>
         {% else %}
-        <p class="p-3 text-muted mb-0">No claims found.</p>
+        <p class="p-6 text-gray-500 mb-0">No claims found.</p>
         {% endif %}
     </div>
 </div>
