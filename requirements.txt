@@ -12,3 +12,4 @@ gunicorn==22.0.0
 whitenoise==6.7.0
 django-environ==0.11.2
 django-auditlog==3.0.0
+django-jazzmin==3.0.5
