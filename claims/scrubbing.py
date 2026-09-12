@@ -24,11 +24,14 @@ class GenderDiagnosisMatchRule(BaseScrubbingRule):
             return RuleResult(True)  # Can't validate if gender missing
         
         gender = claim.patient.gender.lower()
+        is_male = gender in ('m', 'male')
+        is_female = gender in ('f', 'female')
+
         for line in claim.line_items.all():
             icd10 = line.icd10_primary.upper() if line.icd10_primary else ""
-            if gender == 'male' and any(icd10.startswith(prefix) for prefix in cls.FEMALE_ONLY_PREFIXES):
+            if is_male and any(icd10.startswith(prefix) for prefix in cls.FEMALE_ONLY_PREFIXES):
                 return RuleResult(False, f"Diagnosis {icd10} on line {line.id} is invalid for male patient.")
-            if gender == 'female' and any(icd10.startswith(prefix) for prefix in cls.MALE_ONLY_PREFIXES):
+            if is_female and any(icd10.startswith(prefix) for prefix in cls.MALE_ONLY_PREFIXES):
                 return RuleResult(False, f"Diagnosis {icd10} on line {line.id} is invalid for female patient.")
         return RuleResult(True)
 

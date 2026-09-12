@@ -1,59 +1,67 @@
 {% extends "base.html" %}
 
-{% block title %}Bureau Financials{% endblock %}
+{% block header_title %}Bureau Financials{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-    <h1 class="h2">Bureau Financials & Collections</h1>
-</div>
+<div x-data="{ activeTab: 'invoices' }" class="w-full">
+    
+    <!-- Header & Tabs -->
+    <div class="mb-6 border-b border-gray-200">
+        <h1 class="text-2xl font-semibold text-gray-900 mb-4">Financials & Collections</h1>
+        <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+            <button @click="activeTab = 'invoices'" 
+                    :class="activeTab === 'invoices' ? 'border-accent text-accent' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                    class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors">
+                Bureau Invoices (Commission)
+            </button>
+            <button @click="activeTab = 'statements'" 
+                    :class="activeTab === 'statements' ? 'border-accent text-accent' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                    class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors">
+                Patient Statements (Shortfalls)
+            </button>
+        </nav>
+    </div>
 
-<ul class="nav nav-tabs mb-4" id="financialTabs" role="tablist">
-    <li class="nav-item" role="presentation">
-        <button class="nav-link active" id="invoices-tab" data-bs-toggle="tab" data-bs-target="#invoices" type="button" role="tab">Bureau Invoices (Commission)</button>
-    </li>
-    <li class="nav-item" role="presentation">
-        <button class="nav-link" id="statements-tab" data-bs-toggle="tab" data-bs-target="#statements" type="button" role="tab">Patient Statements (Shortfalls)</button>
-    </li>
-</ul>
-
-<div class="tab-content" id="financialTabsContent">
     <!-- Tab 1: Bureau Invoices -->
-    <div class="tab-pane fade show active" id="invoices" role="tabpanel">
-        <div class="table-responsive">
-            <table class="table table-striped table-sm align-middle">
+    <div x-show="activeTab === 'invoices'" x-transition.opacity class="bg-surface border border-gray-200 shadow-soft rounded-xl overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
                 <thead>
-                    <tr>
-                        <th>Practice</th>
-                        <th>Billing Period</th>
-                        <th>Collections Processed</th>
-                        <th>Commission Rate</th>
-                        <th>Invoice Total (Fee)</th>
-                        <th>Status</th>
+                    <tr class="bg-gray-50 border-b border-gray-200">
+                        <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Practice</th>
+                        <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Billing Period</th>
+                        <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Collections Processed</th>
+                        <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Commission Rate</th>
+                        <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Invoice Total</th>
+                        <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody class="divide-y divide-gray-100 bg-white">
                     {% for invoice in bureau_invoices %}
-                    <tr>
-                        <td>{{ invoice.practice.practice_name }}</td>
-                        <td>{{ invoice.billing_period_start|date:"M j, Y" }} - {{ invoice.billing_period_end|date:"M j, Y" }}</td>
-                        <td>R {{ invoice.total_collections_processed }}</td>
-                        <td>{{ invoice.commission_rate }}%</td>
-                        <td class="fw-bold">R {{ invoice.invoice_total }}</td>
-                        <td>
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ invoice.practice.practice_name }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ invoice.billing_period_start|date:"M j, Y" }} - {{ invoice.billing_period_end|date:"M j, Y" }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">R {{ invoice.total_collections_processed }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">{{ invoice.commission_rate }}%</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900 text-right">R {{ invoice.invoice_total }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
                             {% if invoice.status == 'draft' %}
-                                <span class="badge bg-secondary">Draft</span>
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">Draft</span>
                             {% elif invoice.status == 'issued' %}
-                                <span class="badge bg-primary">Issued</span>
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">Issued</span>
                             {% elif invoice.status == 'paid' %}
-                                <span class="badge bg-success">Paid</span>
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Paid</span>
                             {% else %}
-                                <span class="badge bg-danger">{{ invoice.status|title }}</span>
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">{{ invoice.status|title }}</span>
                             {% endif %}
                         </td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="6" class="text-center py-4 text-muted">No Bureau Invoices generated yet.</td>
+                        <td colspan="6" class="px-6 py-12 text-center text-gray-500 text-sm">
+                            <i class="bi bi-receipt text-2xl mb-2 block text-gray-300"></i>
+                            No Bureau Invoices generated yet.
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -62,45 +70,49 @@
     </div>
 
     <!-- Tab 2: Patient Statements -->
-    <div class="tab-pane fade" id="statements" role="tabpanel">
-        <div class="table-responsive">
-            <table class="table table-striped table-sm align-middle">
+    <div x-show="activeTab === 'statements'" style="display: none;" x-transition.opacity class="bg-surface border border-gray-200 shadow-soft rounded-xl overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
                 <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Patient Name</th>
-                        <th>Practice</th>
-                        <th>Outstanding Amount</th>
-                        <th>Delivery Status</th>
-                        <th>Message Draft</th>
+                    <tr class="bg-gray-50 border-b border-gray-200">
+                        <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Date</th>
+                        <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Patient Name</th>
+                        <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Practice</th>
+                        <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Outstanding Amount</th>
+                        <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Message Draft</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody class="divide-y divide-gray-100 bg-white">
                     {% for stmt in patient_statements %}
-                    <tr>
-                        <td>{{ stmt.statement_date|date:"Y-m-d" }}</td>
-                        <td>{{ stmt.patient.first_name }} {{ stmt.patient.last_name }}</td>
-                        <td>{{ stmt.practice.practice_name }}</td>
-                        <td class="fw-bold text-danger">R {{ stmt.total_outstanding }}</td>
-                        <td>
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ stmt.statement_date|date:"Y-m-d" }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ stmt.patient.first_name }} {{ stmt.patient.last_name }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ stmt.practice.practice_name }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-red-600 text-right">R {{ stmt.total_outstanding }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
                             {% if stmt.delivery_status == 'sent' or stmt.delivery_status == 'delivered' %}
-                                <span class="badge bg-success">{{ stmt.delivery_status|title }}</span>
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">{{ stmt.delivery_status|title }}</span>
                             {% elif stmt.delivery_status == 'pending' %}
-                                <span class="badge bg-warning text-dark">Pending</span>
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Pending</span>
                             {% else %}
-                                <span class="badge bg-secondary">{{ stmt.delivery_status|title }}</span>
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">{{ stmt.delivery_status|title }}</span>
                             {% endif %}
                         </td>
-                        <td><small class="text-muted">{{ stmt.message_content }}</small></td>
+                        <td class="px-6 py-4 text-sm text-gray-500 max-w-xs truncate" title="{{ stmt.message_content }}">{{ stmt.message_content }}</td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="6" class="text-center py-4 text-muted">No Patient Statements generated yet.</td>
+                        <td colspan="6" class="px-6 py-12 text-center text-gray-500 text-sm">
+                            <i class="bi bi-envelope-paper text-2xl mb-2 block text-gray-300"></i>
+                            No Patient Statements generated yet.
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
     </div>
+
 </div>
 {% endblock %}
