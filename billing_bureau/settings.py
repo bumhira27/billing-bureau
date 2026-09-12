@@ -163,6 +163,9 @@ JAZZMIN_SETTINGS = {
     'welcome_sign': 'Welcome to Billing Bureau Administration',
     'copyright': 'Billing Bureau',
     'search_model': 'auth.User',
+    'topmenu_links': [
+        {'name': 'Back to App', 'url': '/', 'new_window': False},
+    ],
     'show_sidebar': True,
     'navigation_expanded': True,
     'hide_apps': [],
