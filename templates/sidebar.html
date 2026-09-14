@@ -1,38 +1,45 @@
-<aside class="w-64 bg-primary text-gray-300 flex-shrink-0 hidden md:flex flex-col border-r border-gray-800">
+<aside :class="sidebarMinimized ? 'w-16' : 'w-64'" class="bg-primary text-gray-300 flex-shrink-0 hidden md:flex flex-col border-r border-gray-800 transition-all duration-300">
     <div class="h-16 flex items-center px-6 border-b border-gray-800 bg-gray-900">
-        <span class="text-lg font-bold text-white tracking-tight">Billing Bureau</span>
+        <span x-show="!sidebarMinimized" class="text-lg font-bold text-white tracking-tight whitespace-nowrap">Billing Bureau</span><i x-show="sidebarMinimized" class="bi bi-building text-white text-xl mx-auto"></i>
     </div>
 
     <nav class="flex-1 overflow-y-auto py-4 px-3 space-y-2 no-scrollbar">
         <!-- Core Navigation -->
-        <a href="/" class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors {% if request.path == '/' %}bg-accent text-white{% else %}hover:bg-gray-800 hover:text-white{% endif %}">
-            <i class="bi bi-house-door"></i> Dashboard
+        <a href="/" :title="sidebarMinimized ? 'Dashboard' : ''" :class="sidebarMinimized ? 'justify-center px-0' : 'px-3'" class="flex items-center gap-3 py-2 rounded-md text-sm font-medium transition-colors {% if request.path == '/' %}bg-accent text-white{% else %}hover:bg-gray-800 hover:text-white{% endif %}">
+            <i class="bi bi-house-door"></i> <span x-show="!sidebarMinimized" class="whitespace-nowrap">Dashboard</span>
         </a>
 
-        <a href="{% url 'practices:list' %}" class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors {% if 'practices' in request.path %}bg-accent text-white{% else %}hover:bg-gray-800 hover:text-white{% endif %}">
-            <i class="bi bi-building"></i> Practices
+        <a href="{% url 'practices:list' %}" :title="sidebarMinimized ? 'Practices' : ''" :class="sidebarMinimized ? 'justify-center px-0' : 'px-3'" class="flex items-center gap-3 py-2 rounded-md text-sm font-medium transition-colors {% if 'practices' in request.path %}bg-accent text-white{% else %}hover:bg-gray-800 hover:text-white{% endif %}">
+            <i class="bi bi-building"></i> <span x-show="!sidebarMinimized" class="whitespace-nowrap">Practices</span>
         </a>
-        <a href="{% url 'patients:list' %}" class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors {% if 'patients' in request.path %}bg-accent text-white{% else %}hover:bg-gray-800 hover:text-white{% endif %}">
-            <i class="bi bi-people"></i> Patients
+        <a href="{% url 'patients:list' %}" :title="sidebarMinimized ? 'Patients' : ''" :class="sidebarMinimized ? 'justify-center px-0' : 'px-3'" class="flex items-center gap-3 py-2 rounded-md text-sm font-medium transition-colors {% if 'patients' in request.path %}bg-accent text-white{% else %}hover:bg-gray-800 hover:text-white{% endif %}">
+            <i class="bi bi-people"></i> <span x-show="!sidebarMinimized" class="whitespace-nowrap">Patients</span>
         </a>
-        <a href="{% url 'claims:list' %}" class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors {% if 'claims' in request.path %}bg-accent text-white{% else %}hover:bg-gray-800 hover:text-white{% endif %}">
-            <i class="bi bi-file-text"></i> Claims
+        <a href="{% url 'claims:list' %}" :title="sidebarMinimized ? 'Claims' : ''" :class="sidebarMinimized ? 'justify-center px-0' : 'px-3'" class="flex items-center gap-3 py-2 rounded-md text-sm font-medium transition-colors {% if 'claims' in request.path %}bg-accent text-white{% else %}hover:bg-gray-800 hover:text-white{% endif %}">
+            <i class="bi bi-file-text"></i> <span x-show="!sidebarMinimized" class="whitespace-nowrap">Claims</span>
         </a>
-        <a href="{% url 'reconciliation:dashboard' %}" class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors {% if 'reconciliation' in request.path %}bg-accent text-white{% else %}hover:bg-gray-800 hover:text-white{% endif %}">
-            <i class="bi bi-arrow-left-right"></i> Reconciliation
+        <a href="{% url 'reconciliation:dashboard' %}" :title="sidebarMinimized ? 'Reconciliation' : ''" :class="sidebarMinimized ? 'justify-center px-0' : 'px-3'" class="flex items-center gap-3 py-2 rounded-md text-sm font-medium transition-colors {% if 'reconciliation' in request.path %}bg-accent text-white{% else %}hover:bg-gray-800 hover:text-white{% endif %}">
+            <i class="bi bi-arrow-left-right"></i> <span x-show="!sidebarMinimized" class="whitespace-nowrap">Reconciliation</span>
         </a>
-        <a href="{% url 'billing_collections:financials' %}" class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors {% if 'collections' in request.path %}bg-accent text-white{% else %}hover:bg-gray-800 hover:text-white{% endif %}">
-            <i class="bi bi-wallet2"></i> Collections
+        <a href="{% url 'billing_collections:financials' %}" :title="sidebarMinimized ? 'Collections' : ''" :class="sidebarMinimized ? 'justify-center px-0' : 'px-3'" class="flex items-center gap-3 py-2 rounded-md text-sm font-medium transition-colors {% if 'collections' in request.path %}bg-accent text-white{% else %}hover:bg-gray-800 hover:text-white{% endif %}">
+            <i class="bi bi-wallet2"></i> <span x-show="!sidebarMinimized" class="whitespace-nowrap">Collections</span>
         </a>
 
         {% load role_tags %}
         {% if request.user.is_superuser or request.user|has_group:"BureauAdmin" %}
-        <div class="pt-4 pb-1">
+        <div class="pt-4 pb-1" x-show="!sidebarMinimized">
             <p class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">System</p>
         </div>
-        <a href="/admin/" class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors hover:bg-gray-800 hover:text-white">
-            <i class="bi bi-gear"></i> Administration
+        <a href="/admin/" :title="sidebarMinimized ? 'Administration' : ''" :class="sidebarMinimized ? 'justify-center px-0' : 'px-3'" class="flex items-center gap-3 py-2 rounded-md text-sm font-medium transition-colors hover:bg-gray-800 hover:text-white">
+            <i class="bi bi-gear"></i> <span x-show="!sidebarMinimized" class="whitespace-nowrap">Administration</span>
         </a>
         {% endif %}
     </nav>
+    <div class="p-3 border-t border-gray-800 flex justify-center">
+        <button @click="sidebarMinimized = !sidebarMinimized" class="text-gray-400 hover:text-white transition-colors p-2 rounded-md hover:bg-gray-800" :title="sidebarMinimized ? 'Expand sidebar' : 'Minimize sidebar'">
+            <i class="bi bi-chevron-double-left" x-show="!sidebarMinimized"></i>
+            <i class="bi bi-chevron-double-right" x-show="sidebarMinimized" style="display: none;"></i>
+        </button>
+    </div>
 </aside>
+

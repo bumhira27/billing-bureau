@@ -73,6 +73,14 @@ class ClaimDetailView(LoginRequiredMixin, RBACQuerySetMixin, DetailView):
         context['users'] = User.objects.all()
         context['notes'] = self.object.claim_notes.all()
         context['edi_logs'] = self.object.edi_transmissions.all()
+        
+        # Get rejection codes and their descriptions
+        from reference_data.models import RejectionCode
+        rejection_codes = self.object.line_items.exclude(rejection_code='').values_list('rejection_code', flat=True).distinct()
+        if rejection_codes:
+            context['rejection_reasons'] = RejectionCode.objects.filter(code__in=rejection_codes)
+        else:
+            context['rejection_reasons'] = []
         return context
 
 class ClaimCreateView(LoginRequiredMixin, CreateView):
@@ -189,6 +197,7 @@ def claim_add_note(request, pk):
 import json
 from django.http import JsonResponse
 from django.views.generic import TemplateView
+
 
 
 
