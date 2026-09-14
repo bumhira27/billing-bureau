@@ -1,4 +1,4 @@
-﻿{% extends 'base.html' %}
+{% extends 'base.html' %}
 {% load currency_tags %}
 
 {% block header_title %}Billing Bureau Dashboard{% endblock %}
@@ -8,27 +8,27 @@
     <div>
         <h6 class="text-xs uppercase tracking-wider text-gray-500 font-bold mb-4">Needs Attention</h6>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div class="bg-surface rounded-xl border border-red-200 shadow-soft p-5 flex items-center justify-between">
+            <a href="{% url 'claims:claim_list' %}?status=rejected" class="bg-surface rounded-xl border border-red-200 shadow-soft p-5 flex items-center justify-between hover:bg-red-50 transition-colors cursor-pointer">
                 <div>
                     <h4 class="text-3xl font-bold text-red-600">{{ claims_rejected_count }}</h4>
                     <span class="text-sm text-gray-600 font-medium">Claims rejected</span>
                 </div>
                 <div class="w-12 h-12 bg-red-50 rounded-full flex items-center justify-center text-red-500 text-xl"><i class="bi bi-exclamation-triangle"></i></div>
-            </div>
-            <div class="bg-surface rounded-xl border border-yellow-200 shadow-soft p-5 flex items-center justify-between">
+            </a>
+            <a href="{% url 'reconciliation:unmatched' %}" class="bg-surface rounded-xl border border-yellow-200 shadow-soft p-5 flex items-center justify-between hover:bg-yellow-50 transition-colors cursor-pointer">
                 <div>
                     <h4 class="text-3xl font-bold text-yellow-600">{{ unmatched_payments_count }}</h4>
                     <span class="text-sm text-gray-600 font-medium">Unmatched payments</span>
                 </div>
                 <div class="w-12 h-12 bg-yellow-50 rounded-full flex items-center justify-center text-yellow-500 text-xl"><i class="bi bi-question-circle"></i></div>
-            </div>
-            <div class="bg-surface rounded-xl border border-orange-200 shadow-soft p-5 flex items-center justify-between">
+            </a>
+            <a href="{% url 'billing_collections:statement_list' %}" class="bg-surface rounded-xl border border-orange-200 shadow-soft p-5 flex items-center justify-between hover:bg-orange-50 transition-colors cursor-pointer">
                 <div>
                     <h4 class="text-3xl font-bold text-orange-600">{{ outstanding_statements_count }}</h4>
                     <span class="text-sm text-gray-600 font-medium">Outstanding statements</span>
                 </div>
                 <div class="w-12 h-12 bg-orange-50 rounded-full flex items-center justify-center text-orange-500 text-xl"><i class="bi bi-receipt"></i></div>
-            </div>
+            </a>
         </div>
     </div>
 
@@ -98,3 +98,4 @@
     </div>
 </div>
 {% endblock %}
+
