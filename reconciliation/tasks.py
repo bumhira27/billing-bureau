@@ -59,7 +59,6 @@ def process_remittance_file(remittance_file_id):
 import logging
 from datetime import date, timedelta
 from django.core.files.base import ContentFile
-from credentials.models import MedicalAidPortalCredential
 
 logger = logging.getLogger(__name__)
 

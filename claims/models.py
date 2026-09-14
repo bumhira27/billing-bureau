@@ -145,22 +145,6 @@ class ClaimNote(TimeStampedModel):
         return f'Note on {self.claim} by {self.author.username}'
 
 
-class RpaSubmissionLog(TimeStampedModel):
-    claim = models.ForeignKey(Claim, on_delete=models.CASCADE, related_name='rpa_submissions')
-    portal_name = models.CharField(max_length=100)
-    success = models.BooleanField(default=False)
-    reference_number = models.CharField(max_length=100, blank=True)
-    message = models.TextField(blank=True)
-    screenshot = models.ImageField(upload_to='rpa_proofs/%Y/%m/', null=True, blank=True)
-    execution_time_seconds = models.DecimalField(max_digits=6, decimal_places=2, default=0.00)
-
-    class Meta:
-        ordering = ['-created_at']
-        verbose_name = 'RPA Submission Log'
-        verbose_name_plural = 'RPA Submission Logs'
-
-    def __str__(self):
-        return f"RPA {self.portal_name} on Claim {self.claim_id} - {'Success' if self.success else 'Failed'}"
 
 
 class EdiTransmissionLog(TimeStampedModel):

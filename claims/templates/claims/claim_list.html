@@ -13,12 +13,6 @@
             <p class="text-sm text-gray-500 mt-1">Review, filter, and manage medical claims.</p>
         </div>
         <div class="flex flex-wrap items-center gap-3">
-            <a href="{% url 'claims:upload_note' %}" class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-accent bg-accentLight rounded-lg hover:bg-blue-100 transition-colors">
-                <i class="bi bi-camera"></i> AI Scan
-            </a>
-            <a href="{% url 'claims:batch_capture' %}" class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 transition-colors">
-                <i class="bi bi-grid-3x3-gap"></i> Batch
-            </a>
             <a href="{% url 'claims:create' %}" class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-accent rounded-lg shadow-sm hover:bg-blue-700 transition-colors">
                 <i class="bi bi-plus-lg"></i> New Claim
             </a>

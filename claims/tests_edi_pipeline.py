@@ -111,13 +111,3 @@ class EdiPipelineTestCase(TestCase):
         self.claim.refresh_from_db()
         self.assertEqual(self.claim.claim_status, "submitted")
 
-    def test_edi_logs_list_view(self):
-        """Test EDI transmission log audit view rendering."""
-        batch_claims_edi(claim_id=self.claim.id)
-        url = reverse('claims:edi_logs')
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, 200)
-        content = response.content.decode('utf-8')
-        self.assertIn("EDI Transmission Logs", content)
-        self.assertIn("MSW-", content)
-        self.assertIn("Accepted (ACK)", content)

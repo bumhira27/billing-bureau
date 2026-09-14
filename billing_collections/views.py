@@ -149,6 +149,7 @@ def patient_balance_api(request):
     data = []
     total = 0
     for c in claims:
+        total += float(c.outstanding)
         data.append({
             'claim_id': c.id,
             'practice': str(c.practice),
@@ -157,7 +158,6 @@ def patient_balance_api(request):
         })
     return JsonResponse({'total_outstanding': f"{round(float(total), 2):.2f}", 'claims': data})
 
-from .models import BureauInvoice
 
 class FinancialDashboardView(LoginRequiredMixin, TemplateView):
     template_name = 'billing_collections/financials.html'
@@ -166,7 +166,6 @@ class FinancialDashboardView(LoginRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         
         # Invoices for the bureau
-        context['bureau_invoices'] = BureauInvoice.objects.select_related('practice').order_by('-billing_period_end')
         
         # Statements for patients
         context['patient_statements'] = PatientStatement.objects.select_related('patient', 'practice').order_by('-statement_date')

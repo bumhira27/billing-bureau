@@ -3,11 +3,11 @@ from datetime import datetime
 from decimal import Decimal
 from celery import shared_task
 from django.utils import timezone
-from claims.models import Claim, EdiTransmissionLog, RpaSubmissionLog
 from claims.scrubbing import ClaimScrubber
 from switch_adapters.dtos import ClaimDTO, PatientDTO, PracticeDTO, ClaimLineDTO
 from switch_adapters.mediswitch_edi import generate_medclaim_edi
 from switch_adapters.transport import SwitchTransport
+from claims.models import Claim, EdiTransmissionLog
 
 logger = logging.getLogger(__name__)
 
@@ -144,15 +144,7 @@ def batch_claims_edi(claim_id=None):
             total_amount=total_batch_value
         )
 
-        # Retain backward compatibility for historical views
-        RpaSubmissionLog.objects.create(
-            claim=claim,
-            portal_name=f"{provider_name.title()} EDI Switch",
-            success=(batch_status == 'accepted'),
-            reference_number=batch_ref,
-            message=f"Transmitted in Medclaim EDI Batch {batch_ref}. Status: {batch_status.upper()}.",
-            execution_time_seconds=0.05
-        )
+
 
     logger.info(f"Successfully processed EDI batch {batch_ref} containing {len(valid_claims)} claim(s).")
 

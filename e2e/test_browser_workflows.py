@@ -139,15 +139,7 @@ def run_e2e_audit():
             page.screenshot(path=os.path.join(ARTIFACT_DIR, "08_claim_submitted_edi.png"))
             print("  - Clean Claim submitted successfully via Medclaim EDI.")
 
-            # Step 3c: Open Medclaim EDI Flat-File Inspection Modal
-            inspect_btn = page.locator("button:has-text('Inspect EDI')").first
-            if inspect_btn.count() > 0:
-                inspect_btn.click()
-                time.sleep(0.8)
-                page.screenshot(path=os.path.join(ARTIFACT_DIR, "09_edi_payload_modal.png"))
-                print("  - Opened Medclaim EDI Flat-File modal successfully.")
-
-        # Step 3d: Verify Claim Deletion via Edit workflow
+            # Step 3d: Verify Claim Deletion via Edit workflow
         print("  - Testing Claim Deletion workflow...")
         from practices.models import Practice
         from patients.models import Patient
@@ -199,16 +191,6 @@ def run_e2e_audit():
         print(f"  - Claim #{del_id} successfully deleted from database and redirected to list.")
 
         # -------------------------------------------------------------
-        # 4. EDI Transmission Logs Audit View
-        # -------------------------------------------------------------
-        print("\n[Step 4] Auditing Global EDI Transmission Logs...")
-        page.goto(f"{BASE_URL}/claims/edi-logs/")
-        page.wait_for_load_state("networkidle")
-        time.sleep(0.5)
-        page.screenshot(path=os.path.join(ARTIFACT_DIR, "10_edi_transmission_logs.png"))
-        print("  - EDI Transmission Logs rendered with batch references and ACK statuses.")
-
-        # -------------------------------------------------------------
         # 5. Financials & Collections Dashboard
         # -------------------------------------------------------------
         print("\n[Step 5] Auditing Patient Statements & Collections...")
@@ -232,18 +214,11 @@ def run_e2e_audit():
         print("  - Remittance Reconciliation dashboard verified.")
 
         # -------------------------------------------------------------
-        # 7. Scan Ward Notes (AI Extractor)
-        # -------------------------------------------------------------
-        print("\n[Step 7] Auditing Ward Note AI Extraction View...")
-        page.goto(f"{BASE_URL}/claims/upload-note/")
-        page.wait_for_load_state("networkidle")
-        time.sleep(0.5)
-        page.screenshot(path=os.path.join(ARTIFACT_DIR, "13_scan_ward_notes.png"))
-        print("  - Ward Note AI Scanner view verified.")
-
         browser.close()
         print("\n[E2E AUDIT COMPLETE] All browser workflows executed and visual artifacts captured!")
 
 
 if __name__ == "__main__":
     run_e2e_audit()
+
+

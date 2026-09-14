@@ -31,8 +31,6 @@ class DashboardMixin:
         rejection_rate = (rejected / total_claims_this_month * 100) if total_claims_this_month > 0 else 0
         
         # Claims by status
-        status_counts = claims_this_month.values('claim_status').annotate(count=Count('id'))
-        claims_by_status = {item['claim_status']: item['count'] for item in status_counts}
         
         # Monthly collections (last 6 months)
         six_months_ago = now.date() - relativedelta(months=5)
@@ -60,23 +58,31 @@ class DashboardMixin:
         sixty_days = today - datetime.timedelta(days=60)
         ninety_days = today - datetime.timedelta(days=90)
         
-        ageing_buckets = {'0-30': 0, '31-60': 0, '61-90': 0, '90+': 0}
+        ageing_query = outstanding_qs.exclude(date_of_service__isnull=True).aggregate(
+            bucket_30=Sum(
+                F('total_billed') - F('total_paid'),
+                filter=Q(date_of_service__gte=thirty_days)
+            ),
+            bucket_60=Sum(
+                F('total_billed') - F('total_paid'),
+                filter=Q(date_of_service__gte=sixty_days, date_of_service__lt=thirty_days)
+            ),
+            bucket_90=Sum(
+                F('total_billed') - F('total_paid'),
+                filter=Q(date_of_service__gte=ninety_days, date_of_service__lt=sixty_days)
+            ),
+            bucket_90_plus=Sum(
+                F('total_billed') - F('total_paid'),
+                filter=Q(date_of_service__lt=ninety_days)
+            )
+        )
         
-        for claim in outstanding_qs:
-            if not claim.date_of_service:
-                continue
-            if claim.date_of_service >= thirty_days:
-                ageing_buckets['0-30'] += claim.outstanding
-            elif claim.date_of_service >= sixty_days:
-                ageing_buckets['31-60'] += claim.outstanding
-            elif claim.date_of_service >= ninety_days:
-                ageing_buckets['61-90'] += claim.outstanding
-            else:
-                ageing_buckets['90+'] += claim.outstanding
-                
-        # Convert Decimals to string/float for JSON serialization if needed
-        for k, v in ageing_buckets.items():
-            ageing_buckets[k] = float(v)
+        ageing_buckets = {
+            '0-30': float(ageing_query['bucket_30'] or 0),
+            '31-60': float(ageing_query['bucket_60'] or 0),
+            '61-90': float(ageing_query['bucket_90'] or 0),
+            '90+': float(ageing_query['bucket_90_plus'] or 0)
+        }
 
         return {
             'total_claims_this_month': total_claims_this_month,
@@ -85,7 +91,6 @@ class DashboardMixin:
             'collection_rate': round(collection_rate, 2),
             'total_outstanding': total_outstanding,
             'rejection_rate': round(rejection_rate, 2),
-            'claims_by_status': claims_by_status,
             'monthly_collections': monthly_collections,
             'ageing_buckets': ageing_buckets,
         }

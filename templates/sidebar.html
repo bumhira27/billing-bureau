@@ -28,24 +28,15 @@
         <a href="{% url 'claims:list' %}" class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors {% if request.resolver_match.url_name == 'list' and 'claims' in request.path %}bg-accent text-white{% else %}hover:bg-gray-800 hover:text-white{% endif %}">
             <i class="bi bi-file-text"></i> Claims
         </a>
-        <a href="{% url 'claims:batch_capture' %}" class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors {% if request.resolver_match.url_name == 'batch_capture' %}bg-accent text-white{% else %}hover:bg-gray-800 hover:text-white{% endif %}">
-            <i class="bi bi-grid-3x3-gap"></i> Batch Capture
-        </a>
-        <a href="{% url 'claims:upload_note' %}" class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors {% if request.resolver_match.url_name == 'upload_note' %}bg-accent text-white{% else %}hover:bg-gray-800 hover:text-white{% endif %}">
-            <i class="bi bi-camera"></i> Scan Ward Notes
-        </a>
 
         {% load role_tags %}
         {% if request.user.is_superuser or request.user|has_group:"BureauAdmin" %}
-        <!-- Statements & Logs -->
+        <!-- Statements -->
         <div class="pt-4 pb-1">
-            <p class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Statements & Logs</p>
+            <p class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Statements</p>
         </div>
         <a href="{% url 'billing_collections:financials' %}" class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors {% if request.resolver_match.url_name == 'financials' and 'collections' in request.path %}bg-accent text-white{% else %}hover:bg-gray-800 hover:text-white{% endif %}">
             <i class="bi bi-receipt"></i> Patient Statements
-        </a>
-        <a href="{% url 'claims:rpa_logs' %}" class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors {% if request.resolver_match.url_name == 'rpa_logs' %}bg-accent text-white{% else %}hover:bg-gray-800 hover:text-white{% endif %}">
-            <i class="bi bi-diagram-3"></i> EDI Logs
         </a>
         {% endif %}
 

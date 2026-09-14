@@ -49,8 +49,6 @@ INSTALLED_APPS = [
     
     # Local apps
     'core',
-    'bureau',
-    'credentials',
     'practices',
     'patients',
     'claims',
@@ -58,7 +56,6 @@ INSTALLED_APPS = [
     'billing_collections',
     'dashboard',
     'reference_data',
-    'api',
 ]
 
 CRISPY_ALLOWED_TEMPLATE_PACKS = 'bootstrap5'
@@ -77,7 +74,6 @@ MIDDLEWARE = [
     'django_htmx.middleware.HtmxMiddleware',
     'auditlog.middleware.AuditlogMiddleware',
     'core.middleware.PHIReadLoggerMiddleware',
-    'core.middleware.EnforceBureauAdminMFAMiddleware',
 ]
 
 ROOT_URLCONF = 'billing_bureau.urls'
@@ -93,7 +89,6 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'bureau.context_processors.bureau_profile',
             ],
             'builtins': [
                 'core.templatetags.currency_tags',

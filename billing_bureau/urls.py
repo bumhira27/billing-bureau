@@ -13,8 +13,6 @@ urlpatterns = [
     path('reconciliation/', include('reconciliation.urls')),
     path('collections/', include('billing_collections.urls')),
     path('reference/', include('reference_data.urls')),
-    path('bureau/', include('bureau.urls')),
-    path('api/v1/', include('api.v1_urls')),
 ]
 
 if getattr(settings, 'MFA_ENABLED', False):

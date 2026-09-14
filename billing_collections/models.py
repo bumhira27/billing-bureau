@@ -69,36 +69,3 @@ def update_claim_totals(sender, instance, created, **kwargs):
         instance.claim.recalculate_totals()
 
 
-class BureauInvoice(TimeStampedModel):
-    INVOICE_STATUS_CHOICES = [
-        ('draft', 'Draft'),
-        ('issued', 'Issued'),
-        ('paid', 'Paid'),
-        ('overdue', 'Overdue')
-    ]
-
-    practice = models.ForeignKey('practices.Practice', on_delete=models.CASCADE, related_name='bureau_invoices')
-    billing_period_start = models.DateField()
-    billing_period_end = models.DateField()
-    total_collections_processed = models.DecimalField(max_digits=12, decimal_places=2, default=0)
-    commission_rate = models.DecimalField(max_digits=5, decimal_places=2, help_text="Percentage (e.g. 2.00)")
-    invoice_total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    status = models.CharField(max_length=20, choices=INVOICE_STATUS_CHOICES, default='draft')
-
-    class Meta:
-        ordering = ['-billing_period_end']
-        verbose_name = 'Bureau Invoice'
-        verbose_name_plural = 'Bureau Invoices'
-
-    def __str__(self):
-        return f"Bureau Invoice - {self.practice.practice_name} ({self.billing_period_start} to {self.billing_period_end})"
-
-class BureauInvoiceLine(models.Model):
-    invoice = models.ForeignKey(BureauInvoice, on_delete=models.CASCADE, related_name='lines')
-    payment = models.ForeignKey(Payment, on_delete=models.SET_NULL, null=True, blank=True)
-    description = models.CharField(max_length=255)
-    payment_amount = models.DecimalField(max_digits=10, decimal_places=2)
-    commission_fee = models.DecimalField(max_digits=10, decimal_places=2)
-
-    def __str__(self):
-        return f"Fee: R{self.commission_fee} for Payment: R{self.payment_amount}"
