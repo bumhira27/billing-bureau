@@ -18,12 +18,6 @@ class Claim(TimeStampedModel):
         ('written_off', 'Written Off')
     ]
 
-    SOURCE_TYPE_CHOICES = [
-        ('manual', 'Manual Capture'),
-        ('photo', 'Photo/Scan Upload'),
-        ('day_sheet', 'Day Sheet')
-    ]
-
     practice = models.ForeignKey('practices.Practice', on_delete=models.CASCADE, related_name='claims')
     patient = models.ForeignKey('patients.Patient', on_delete=models.CASCADE, related_name='claims')
     patient_scheme = models.ForeignKey('patients.PatientScheme', on_delete=models.SET_NULL, null=True, blank=True, related_name='claims')
@@ -39,17 +33,7 @@ class Claim(TimeStampedModel):
     total_paid = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     total_patient_liable = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     
-    source_type = models.CharField(max_length=20, choices=SOURCE_TYPE_CHOICES, default='manual')
-    source_file = models.ImageField(upload_to='claim_sources/%Y/%m/', blank=True, null=True)
     notes = models.TextField(blank=True)
-    
-    PRIORITY_CHOICES = [
-        ('high', 'High'),
-        ('medium', 'Medium'),
-        ('low', 'Low')
-    ]
-    assigned_to = models.ForeignKey('auth.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='assigned_claims')
-    internal_priority = models.CharField(max_length=10, choices=PRIORITY_CHOICES, default='medium')
 
     class Meta:
         ordering = ['-date_of_service', '-created_at']

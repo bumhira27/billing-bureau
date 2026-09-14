@@ -22,12 +22,8 @@ if getattr(settings, 'MFA_ENABLED', False):
     ]
 else:
     urlpatterns += [
-        path('account/login/', auth_views.LoginView.as_view(template_name='registration/login.html', redirect_authenticated_user=True), name='login'),
-        path('accounts/login/', auth_views.LoginView.as_view(template_name='registration/login.html', redirect_authenticated_user=True)),
-        path('login/', auth_views.LoginView.as_view(template_name='registration/login.html', redirect_authenticated_user=True)),
-        path('account/logout/', auth_views.LogoutView.as_view(next_page='/account/login/'), name='logout'),
-        path('accounts/logout/', auth_views.LogoutView.as_view(next_page='/account/login/')),
-        path('logout/', auth_views.LogoutView.as_view(next_page='/account/login/')),
+        path('accounts/login/', auth_views.LoginView.as_view(template_name='registration/login.html', redirect_authenticated_user=True), name='login'),
+        path('accounts/logout/', auth_views.LogoutView.as_view(next_page='/accounts/login/'), name='logout'),
     ]
 
 urlpatterns += [

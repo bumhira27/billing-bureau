@@ -6,7 +6,7 @@ from django.contrib import messages
 from django.utils import timezone
 from django.db.models import Q
 from .models import Claim, ClaimLineItem
-from .forms import ClaimForm, ClaimLineItemFormSet, NoteUploadForm
+from .forms import ClaimForm, ClaimLineItemFormSet
 from .services.ai_extractor import extract_from_image
 from datetime import datetime, date
 import logging
@@ -175,28 +175,6 @@ def claim_edi_submit(request, pk):
     return redirect('claims:detail', pk=pk)
 
 
-# Backward compatibility alias
-
-@require_POST
-@login_required
-def claim_assign(request, pk):
-    claim = get_object_or_404(Claim, pk=pk)
-    assigned_to_id = request.POST.get('assigned_to')
-    internal_priority = request.POST.get('internal_priority')
-    
-    if assigned_to_id:
-        from django.contrib.auth.models import User
-        claim.assigned_to = get_object_or_404(User, pk=assigned_to_id)
-    else:
-        claim.assigned_to = None
-        
-    if internal_priority in [c[0] for c in Claim.PRIORITY_CHOICES]:
-        claim.internal_priority = internal_priority
-        
-    claim.save()
-    messages.success(request, "Claim assignment updated.")
-    return redirect('claims:detail', pk=pk)
-
 @require_POST
 @login_required
 def claim_add_note(request, pk):
@@ -211,6 +189,9 @@ def claim_add_note(request, pk):
 import json
 from django.http import JsonResponse
 from django.views.generic import TemplateView
+
+
+
 
 
 

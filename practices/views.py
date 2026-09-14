@@ -45,7 +45,6 @@ class PracticeDetailView(LoginRequiredMixin, RBACQuerySetMixin, DetailView):
         total_paid = round(float(totals['total_paid'] or 0), 2)
         outstanding = round(total_billed - total_paid, 2)
         collection_rate = round((total_paid / total_billed * 100), 1) if total_billed > 0 else 0.0
-        bureau_fee = round(total_paid * float(self.object.fee_percentage) / 100.0, 2)
 
         context['total_claims_count'] = claims.count()
         context['total_billed'] = total_billed
@@ -71,54 +70,3 @@ class PracticeUpdateView(LoginRequiredMixin, UpdateView):
     def get_success_url(self):
         return reverse_lazy('practices:detail', kwargs={'pk': self.object.pk})
 
-
-from django.views.decorators.http import require_POST
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import get_object_or_404, redirect
-from django.contrib import messages
-from .models import PortalCredential
-from .forms import PortalCredentialForm
-
-
-@require_POST
-@login_required
-def portal_credential_create(request, practice_pk):
-    practice = get_object_or_404(Practice, pk=practice_pk)
-    form = PortalCredentialForm(request.POST)
-    if form.is_valid():
-        cred = form.save(commit=False)
-        cred.practice = practice
-        cred.created_by = request.user
-        cred.save()
-        messages.success(request, f"Portal credentials for {cred.get_administrator_display()} configured.")
-    else:
-        messages.error(request, "Failed to save portal credentials. Please check inputs.")
-    return redirect('practices:detail', pk=practice_pk)
-
-
-@require_POST
-@login_required
-def portal_credential_test(request, pk):
-    cred = get_object_or_404(PortalCredential, pk=pk)
-    from django.utils import timezone
-
-    # Switch routing test (verifies BHF credentials and clearinghouse connectivity)
-    is_valid_format = bool(cred.username and cred.password)
-    if is_valid_format:
-        cred.last_tested = timezone.now()
-        cred.save(update_fields=['last_tested'])
-        messages.success(request, f"Switch connection verified for {cred.get_administrator_display()} ({cred.username}).")
-    else:
-        messages.error(request, f"Switch connection test failed for {cred.get_administrator_display()}. Missing credentials.")
-    return redirect('practices:detail', pk=cred.practice_id)
-
-
-@require_POST
-@login_required
-def portal_credential_delete(request, pk):
-    cred = get_object_or_404(PortalCredential, pk=pk)
-    practice_id = cred.practice_id
-    admin_name = cred.get_administrator_display()
-    cred.delete()
-    messages.success(request, f"Removed {admin_name} portal credentials.")
-    return redirect('practices:detail', pk=practice_id)

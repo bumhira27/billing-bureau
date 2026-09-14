@@ -1,163 +1,95 @@
-{% extends "base.html" %}
+﻿{% extends 'base.html' %}
 {% load currency_tags %}
 
-{% block header_title %}Bureau Dashboard{% endblock %}
+{% block header_title %}Billing Bureau Dashboard{% endblock %}
 
 {% block content %}
-<div class="space-y-6 w-full">
-    
-    <!-- Top Stats -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        
-        <div class="bg-surface rounded-xl border border-gray-200 shadow-soft p-5">
-            <h6 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Billed (This Month)</h6>
-            <h2 class="text-3xl font-bold text-gray-900 mb-1">R {{ total_billed_this_month|default:"0.00" }}</h2>
-            <div class="text-sm text-gray-500 mt-2 flex items-center gap-2">
-                <i class="bi bi-file-earmark-text"></i> {{ total_claims_this_month }} claims submitted
+<div class="space-y-8 max-w-5xl">
+    <div>
+        <h6 class="text-xs uppercase tracking-wider text-gray-500 font-bold mb-4">Needs Attention</h6>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="bg-surface rounded-xl border border-red-200 shadow-soft p-5 flex items-center justify-between">
+                <div>
+                    <h4 class="text-3xl font-bold text-red-600">{{ claims_rejected_count }}</h4>
+                    <span class="text-sm text-gray-600 font-medium">Claims rejected</span>
+                </div>
+                <div class="w-12 h-12 bg-red-50 rounded-full flex items-center justify-center text-red-500 text-xl"><i class="bi bi-exclamation-triangle"></i></div>
             </div>
-        </div>
-        
-        <div class="bg-surface rounded-xl border border-gray-200 shadow-soft p-5">
-            <h6 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Collected (This Month)</h6>
-            <h2 class="text-3xl font-bold text-green-600 mb-1">R {{ total_collected_this_month|default:"0.00" }}</h2>
-            <div class="text-sm text-gray-500 mt-2">
-                Collection Rate: <span class="font-semibold text-gray-900">{{ collection_rate }}%</span>
+            <div class="bg-surface rounded-xl border border-yellow-200 shadow-soft p-5 flex items-center justify-between">
+                <div>
+                    <h4 class="text-3xl font-bold text-yellow-600">{{ unmatched_payments_count }}</h4>
+                    <span class="text-sm text-gray-600 font-medium">Unmatched payments</span>
+                </div>
+                <div class="w-12 h-12 bg-yellow-50 rounded-full flex items-center justify-center text-yellow-500 text-xl"><i class="bi bi-question-circle"></i></div>
             </div>
-        </div>
-        
-        <div class="bg-surface rounded-xl border border-gray-200 shadow-soft p-5">
-            <h6 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Total Outstanding</h6>
-            <h2 class="text-3xl font-bold text-orange-500 mb-1">R {{ total_outstanding|default:"0.00" }}</h2>
-            <div class="text-sm text-gray-500 mt-2">
-                Across {{ total_practices }} active practices
-            </div>
-        </div>
-        
-        <div class="bg-surface rounded-xl border border-gray-200 shadow-soft p-5">
-            <h6 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Rejection Rate</h6>
-            <h2 class="text-3xl font-bold {% if rejection_rate > 10 %}text-red-600{% else %}text-gray-900{% endif %} mb-1">{{ rejection_rate }}%</h2>
-            <div class="text-sm text-gray-500 mt-2">
-                Target: < 5%
-            </div>
-        </div>
-
-    </div>
-
-    <!-- Monthly Collections Chart -->
-    <div class="bg-surface rounded-xl border border-gray-200 shadow-soft p-5">
-        <h6 class="text-sm font-semibold text-gray-900 mb-4">Collections vs Billings (Last 6 Months)</h6>
-        <div class="h-64 relative w-full">
-            <canvas id="monthlyChart"></canvas>
-        </div>
-    </div>
-
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        <!-- Ageing Chart -->
-        <div class="bg-surface rounded-xl border border-gray-200 shadow-soft p-5 col-span-1">
-            <h6 class="text-sm font-semibold text-gray-900 mb-4">Debtors Ageing</h6>
-            <div class="h-64 relative w-full">
-                <canvas id="ageingChart"></canvas>
-            </div>
-        </div>
-        
-        <!-- Top Rejections -->
-        <div class="bg-surface rounded-xl border border-gray-200 shadow-soft p-5 col-span-1 lg:col-span-2">
-            <h6 class="text-sm font-semibold text-gray-900 mb-4">Top Rejection Reasons</h6>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="bg-gray-50 border-b border-gray-200">
-                            <th class="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Reason Code</th>
-                            <th class="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Count</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-100 bg-white">
-                        {% for rc in top_rejection_codes %}
-                        <tr class="hover:bg-gray-50 transition-colors">
-                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{{ rc.rejection_code }}</td>
-                            <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-600 text-right">{{ rc.count }}</td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="2" class="px-4 py-8 text-center text-gray-500 text-sm">No rejections found</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+            <div class="bg-surface rounded-xl border border-orange-200 shadow-soft p-5 flex items-center justify-between">
+                <div>
+                    <h4 class="text-3xl font-bold text-orange-600">{{ outstanding_statements_count }}</h4>
+                    <span class="text-sm text-gray-600 font-medium">Outstanding statements</span>
+                </div>
+                <div class="w-12 h-12 bg-orange-50 rounded-full flex items-center justify-center text-orange-500 text-xl"><i class="bi bi-receipt"></i></div>
             </div>
         </div>
     </div>
 
-    <!-- Recent Activity -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        
-        <!-- Recent Claims -->
-        <div class="bg-surface rounded-xl border border-gray-200 shadow-soft p-5">
-            <h6 class="text-sm font-semibold text-gray-900 mb-4">Recent Claims</h6>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="bg-gray-50 border-b border-gray-200">
-                            <th class="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">ID</th>
-                            <th class="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Date</th>
-                            <th class="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-                            <th class="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Billed</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-100 bg-white">
+    <div>
+        <h6 class="text-xs uppercase tracking-wider text-gray-500 font-bold mb-4">This Month</h6>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="bg-surface rounded-xl border border-gray-200 shadow-soft p-5">
+                <span class="text-gray-500 text-xs uppercase font-semibold block mb-1">Billed</span>
+                <h4 class="text-2xl font-bold text-gray-900">{{ billed_this_month|rands }}</h4>
+            </div>
+            <div class="bg-surface rounded-xl border border-gray-200 shadow-soft p-5">
+                <span class="text-gray-500 text-xs uppercase font-semibold block mb-1">Collected</span>
+                <h4 class="text-2xl font-bold text-green-600">{{ collected_this_month|rands }}</h4>
+            </div>
+            <div class="bg-surface rounded-xl border border-gray-200 shadow-soft p-5">
+                <span class="text-gray-500 text-xs uppercase font-semibold block mb-1">Outstanding (Total)</span>
+                <h4 class="text-2xl font-bold text-gray-900">{{ total_outstanding|rands }}</h4>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div>
+            <h6 class="text-xs uppercase tracking-wider text-gray-500 font-bold mb-4">Recent Claims</h6>
+            <div class="bg-surface border border-gray-200 shadow-soft rounded-xl overflow-hidden">
+                <table class="min-w-full divide-y divide-gray-200 text-sm">
+                    <tbody class="bg-white divide-y divide-gray-200">
                         {% for c in recent_claims %}
-                        <tr class="hover:bg-gray-50 transition-colors">
-                            <td class="px-4 py-3 whitespace-nowrap text-sm"><a href="{% url 'claims:detail' c.id %}" class="text-accent hover:underline font-medium">#{{ c.id }}</a></td>
-                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{{ c.date_of_service|date:"Y-m-d" }}</td>
-                            <td class="px-4 py-3 whitespace-nowrap">
-                                {% if c.claim_status == 'paid' %}
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">Paid in Full</span>
-                                {% elif c.claim_status == 'rejected' %}
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">Rejected</span>
-                                {% elif c.claim_status == 'partially_paid' %}
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">Partially Paid</span>
-                                {% elif c.claim_status == 'submitted' %}
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">Submitted</span>
-                                {% else %}
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">{{ c.get_claim_status_display }}</span>
-                                {% endif %}
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-4 py-3 font-mono text-xs text-gray-500">#{{ c.id }}</td>
+                            <td class="px-4 py-3 font-medium text-gray-900">{{ c.patient.full_name }}</td>
+                            <td class="px-4 py-3 text-right">
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium 
+                                {% if c.claim_status == 'paid' %}bg-green-100 text-green-800
+                                {% elif c.claim_status == 'rejected' %}bg-red-100 text-red-800
+                                {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                    {{ c.get_claim_status_display }}
+                                </span>
                             </td>
-                            <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900 text-right">{{ c.total_billed|rands }}</td>
                         </tr>
                         {% empty %}
-                        <tr>
-                            <td colspan="4" class="px-4 py-8 text-center text-gray-500 text-sm">No recent claims</td>
-                        </tr>
+                        <tr><td colspan="3" class="px-4 py-4 text-center text-gray-500">No recent claims</td></tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
         </div>
 
-        <!-- Recent Payments -->
-        <div class="bg-surface rounded-xl border border-gray-200 shadow-soft p-5">
-            <h6 class="text-sm font-semibold text-gray-900 mb-4">Recent Payments</h6>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="bg-gray-50 border-b border-gray-200">
-                            <th class="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Date</th>
-                            <th class="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Amount</th>
-                            <th class="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Source</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-100 bg-white">
+        <div>
+            <h6 class="text-xs uppercase tracking-wider text-gray-500 font-bold mb-4">Recent Payments</h6>
+            <div class="bg-surface border border-gray-200 shadow-soft rounded-xl overflow-hidden">
+                <table class="min-w-full divide-y divide-gray-200 text-sm">
+                    <tbody class="bg-white divide-y divide-gray-200">
                         {% for p in recent_payments %}
-                        <tr class="hover:bg-gray-50 transition-colors">
-                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{{ p.payment_date|date:"Y-m-d" }}</td>
-                            <td class="px-4 py-3 whitespace-nowrap text-sm font-semibold text-green-600">{{ p.amount|rands }}</td>
-                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500 text-right">{{ p.get_payment_source_display }}</td>
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-4 py-3 text-gray-500">{{ p.payment_date|date:"d M" }}</td>
+                            <td class="px-4 py-3 font-medium text-gray-900">{{ p.amount|rands }}</td>
+                            <td class="px-4 py-3 text-right text-xs text-gray-500">{{ p.get_payment_source_display }}</td>
                         </tr>
                         {% empty %}
-                        <tr>
-                            <td colspan="3" class="px-4 py-8 text-center text-gray-500 text-sm">No recent payments</td>
-                        </tr>
+                        <tr><td colspan="3" class="px-4 py-4 text-center text-gray-500">No recent payments</td></tr>
                         {% endfor %}
                     </tbody>
                 </table>
@@ -165,94 +97,4 @@
         </div>
     </div>
 </div>
-
-{{ monthly_collections|json_script:"monthly-data" }}
-{{ ageing_buckets|json_script:"ageing-data" }}
-
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Tailwind Colors mapped for Chart.js
-        const colors = {
-            primary: '#111827',
-            accent: '#2563EB',
-            accentLight: 'rgba(37, 99, 235, 0.2)',
-            success: '#16A34A',
-            successLight: 'rgba(22, 163, 74, 0.2)',
-            warning: '#F59E0B',
-            warningLight: 'rgba(245, 158, 11, 0.2)',
-            danger: '#DC2626',
-            dangerLight: 'rgba(220, 38, 38, 0.2)',
-            gray: '#9CA3AF'
-        };
-
-        const monthlyData = JSON.parse(document.getElementById('monthly-data').textContent);
-        const ageingData = JSON.parse(document.getElementById('ageing-data').textContent);
-        
-        Chart.defaults.font.family = "'Inter', sans-serif";
-        Chart.defaults.color = colors.gray;
-        
-        // Monthly Chart
-        if (monthlyData.length > 0) {
-            new Chart(document.getElementById('monthlyChart'), {
-                type: 'bar',
-                data: {
-                    labels: monthlyData.map(d => d.month),
-                    datasets: [
-                        {
-                            label: 'Billed',
-                            data: monthlyData.map(d => parseFloat(d.billed)),
-                            backgroundColor: colors.accentLight,
-                            borderColor: colors.accent,
-                            borderWidth: 2,
-                            borderRadius: 4
-                        },
-                        {
-                            label: 'Collected',
-                            data: monthlyData.map(d => parseFloat(d.collected)),
-                            backgroundColor: colors.successLight,
-                            borderColor: colors.success,
-                            borderWidth: 2,
-                            borderRadius: 4
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { position: 'top' } },
-                    scales: {
-                        y: { beginAtZero: true, grid: { borderDash: [4, 4], color: '#E5E7EB' } },
-                        x: { grid: { display: false } }
-                    }
-                }
-            });
-        }
-        
-        // Ageing Chart
-        new Chart(document.getElementById('ageingChart'), {
-            type: 'bar',
-            data: {
-                labels: ['0-30 days', '31-60 days', '61-90 days', '90+ days'],
-                datasets: [{
-                    label: 'Outstanding Amount',
-                    data: [ageingData['0-30'], ageingData['31-60'], ageingData['61-90'], ageingData['90+']],
-                    backgroundColor: colors.warningLight,
-                    borderColor: colors.warning,
-                    borderWidth: 2,
-                    borderRadius: 4
-                }]
-            },
-            options: {
-                indexAxis: 'y',
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: {
-                    x: { beginAtZero: true, grid: { borderDash: [4, 4], color: '#E5E7EB' } },
-                    y: { grid: { display: false } }
-                }
-            }
-        });
-    });
-</script>
 {% endblock %}

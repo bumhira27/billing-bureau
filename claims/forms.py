@@ -8,7 +8,7 @@ class ClaimForm(forms.ModelForm):
         fields = [
             'practice', 'patient', 'patient_scheme', 'date_of_service',
             'referring_doctor_bhf', 'referring_doctor_name', 'authorization_number',
-            'source_type', 'source_file', 'notes'
+            'notes'
         ]
         widgets = {
             'patient': forms.HiddenInput(),
@@ -37,25 +37,4 @@ ClaimLineItemFormSet = inlineformset_factory(
     extra=3, 
     can_delete=True
 )
-
-class NoteUploadForm(forms.Form):
-    practice = forms.ModelChoiceField(
-        queryset=None,
-        empty_label="-- Select Practice --",
-        widget=forms.Select(attrs={'class': 'form-select'})
-    )
-    note_file = forms.FileField(
-        label="Handwritten Note / Day Sheet Image",
-        widget=forms.FileInput(attrs={'accept': 'image/*', 'class': 'form-control', 'id': 'note_file_input'})
-    )
-    notes = forms.CharField(
-        required=False,
-        label="Optional Instructions",
-        widget=forms.Textarea(attrs={'rows': 2, 'class': 'form-control', 'placeholder': 'Doctor name, specialty context, or specific instructions'})
-    )
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        from practices.models import Practice
-        self.fields['practice'].queryset = Practice.objects.filter(is_active=True)
 

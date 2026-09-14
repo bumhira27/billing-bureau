@@ -59,7 +59,7 @@ class SiteWideCurrencyRenderingTest(TestCase):
             hpcsa_number="MP9999",
             owner_name="Dr Test",
             phone="0115551234",
-            fee_percentage=Decimal('2.00')
+
         )
         self.patient = Patient.objects.create(
             practice=self.practice,
@@ -138,3 +138,8 @@ class SiteWideCurrencyRenderingTest(TestCase):
         content = response.content.decode('utf-8')
         self.assertIn("R 2,617.80", content)
         self.assertIn("R 7,628.90", content)
+
+
+
+
+

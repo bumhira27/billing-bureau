@@ -8,7 +8,7 @@ class ClaimLineItemInline(admin.TabularInline):
 @admin.register(Claim)
 class ClaimAdmin(admin.ModelAdmin):
     list_display = ('id', 'patient', 'practice', 'date_of_service', 'claim_status', 'total_billed', 'total_paid')
-    list_filter = ('claim_status', 'practice', 'source_type')
+    list_filter = ('claim_status', 'practice')
     search_fields = ('patient__first_name', 'patient__last_name', 'switch_reference_number')
     date_hierarchy = 'date_of_service'
     inlines = [ClaimLineItemInline]

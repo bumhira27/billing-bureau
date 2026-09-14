@@ -1,211 +1,53 @@
-import datetime
-from dateutil.relativedelta import relativedelta
-from django.shortcuts import render
-from django.views.generic import TemplateView, DetailView
+﻿from django.views.generic import TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import Sum, Count, F, Q
-from django.db.models.functions import TruncMonth
+from django.db.models import Sum, F
 from django.utils import timezone
-from django.http import HttpResponse
-
-import openpyxl
-
-from practices.models import Practice
-from claims.models import Claim, ClaimLineItem
+from claims.models import Claim
 from billing_collections.models import Payment
+from reconciliation.models import RemittanceLine
 
-class DashboardMixin:
-    def get_dashboard_metrics(self, base_claims, now):
-        claims_this_month = base_claims.filter(date_of_service__month=now.month, date_of_service__year=now.year)
-        total_claims_this_month = claims_this_month.count()
-        
-        billed = round(float(claims_this_month.aggregate(total=Sum('total_billed'))['total'] or 0), 2)
-        collected = round(float(claims_this_month.aggregate(total=Sum('total_paid'))['total'] or 0), 2)
-        
-        collection_rate = (collected / billed * 100) if billed > 0 else 0
-        
-        outstanding_qs = base_claims.filter(total_paid__lt=F('total_billed')).annotate(outstanding=F('total_billed') - F('total_paid'))
-        total_outstanding = round(float(outstanding_qs.aggregate(total=Sum('outstanding'))['total'] or 0), 2)
-        
-        rejected = claims_this_month.filter(claim_status='rejected').count()
-        rejection_rate = (rejected / total_claims_this_month * 100) if total_claims_this_month > 0 else 0
-        
-        # Claims by status
-        
-        # Monthly collections (last 6 months)
-        six_months_ago = now.date() - relativedelta(months=5)
-        six_months_ago = six_months_ago.replace(day=1)
-        
-        monthly_data = base_claims.filter(date_of_service__gte=six_months_ago).annotate(
-            month=TruncMonth('date_of_service')
-        ).values('month').annotate(
-            billed=Sum('total_billed'),
-            collected=Sum('total_paid')
-        ).order_by('month')
-        
-        monthly_collections = []
-        for item in monthly_data:
-            if item['month']:
-                monthly_collections.append({
-                    'month': item['month'].strftime('%Y-%m'),
-                    'billed': str(round(float(item['billed'] or 0), 2)),
-                    'collected': str(round(float(item['collected'] or 0), 2))
-                })
-        
-        # Ageing analysis
-        today = now.date()
-        thirty_days = today - datetime.timedelta(days=30)
-        sixty_days = today - datetime.timedelta(days=60)
-        ninety_days = today - datetime.timedelta(days=90)
-        
-        ageing_query = outstanding_qs.exclude(date_of_service__isnull=True).aggregate(
-            bucket_30=Sum(
-                F('total_billed') - F('total_paid'),
-                filter=Q(date_of_service__gte=thirty_days)
-            ),
-            bucket_60=Sum(
-                F('total_billed') - F('total_paid'),
-                filter=Q(date_of_service__gte=sixty_days, date_of_service__lt=thirty_days)
-            ),
-            bucket_90=Sum(
-                F('total_billed') - F('total_paid'),
-                filter=Q(date_of_service__gte=ninety_days, date_of_service__lt=sixty_days)
-            ),
-            bucket_90_plus=Sum(
-                F('total_billed') - F('total_paid'),
-                filter=Q(date_of_service__lt=ninety_days)
-            )
-        )
-        
-        ageing_buckets = {
-            '0-30': float(ageing_query['bucket_30'] or 0),
-            '31-60': float(ageing_query['bucket_60'] or 0),
-            '61-90': float(ageing_query['bucket_90'] or 0),
-            '90+': float(ageing_query['bucket_90_plus'] or 0)
-        }
-
-        return {
-            'total_claims_this_month': total_claims_this_month,
-            'total_billed_this_month': billed,
-            'total_collected_this_month': collected,
-            'collection_rate': round(collection_rate, 2),
-            'total_outstanding': total_outstanding,
-            'rejection_rate': round(rejection_rate, 2),
-            'monthly_collections': monthly_collections,
-            'ageing_buckets': ageing_buckets,
-        }
-
-class DashboardView(LoginRequiredMixin, DashboardMixin, TemplateView):
+class DashboardView(LoginRequiredMixin, TemplateView):
     template_name = 'dashboard/index.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         now = timezone.now()
-        
         user = self.request.user
+        
         is_admin = user.is_superuser or user.groups.filter(name='BureauAdmin').exists()
         
+        base_claims = Claim.objects.all() if is_admin else Claim.objects.filter(practice__users=user)
+        base_payments = Payment.objects.all() if is_admin else Payment.objects.filter(claim__practice__users=user)
+        
+        # Needs Attention
+        context['claims_rejected_count'] = base_claims.filter(claim_status='rejected').count()
+        
         if is_admin:
-            total_practices = Practice.objects.filter(is_active=True).count()
-            base_claims = Claim.objects.all()
-            recent_claims = base_claims.order_by('-created_at')[:10]
-            recent_payments = Payment.objects.order_by('-created_at')[:10]
-            top_codes = ClaimLineItem.objects.filter(rejection_code__isnull=False).exclude(rejection_code='').values(
-                'rejection_code'
-            ).annotate(count=Count('id')).order_by('-count')[:5]
+            context['unmatched_payments_count'] = RemittanceLine.objects.filter(is_matched=False).count()
         else:
-            total_practices = Practice.objects.filter(users=user, is_active=True).count()
-            base_claims = Claim.objects.filter(practice__users=user)
-            recent_claims = base_claims.order_by('-created_at')[:10]
-            recent_payments = Payment.objects.filter(claim__practice__users=user).order_by('-created_at')[:10]
-            top_codes = ClaimLineItem.objects.filter(claim__practice__users=user, rejection_code__isnull=False).exclude(rejection_code='').values(
-                'rejection_code'
-            ).annotate(count=Count('id')).order_by('-count')[:5]
+            context['unmatched_payments_count'] = 0
             
-        context['total_practices'] = total_practices
+        context['outstanding_statements_count'] = base_claims.filter(
+            total_paid__lt=F('total_billed'), 
+            claim_status__in=['submitted', 'partially_paid']
+        ).count()
         
-        metrics = self.get_dashboard_metrics(base_claims, now)
-        context.update(metrics)
+        # This Month Metrics
+        this_month_claims = base_claims.filter(date_of_service__year=now.year, date_of_service__month=now.month)
+        billed = this_month_claims.aggregate(Sum('total_billed'))['total_billed__sum'] or 0.0
         
-        context['recent_claims'] = recent_claims
-        context['recent_payments'] = recent_payments
-        context['top_rejection_codes'] = top_codes
+        this_month_payments = base_payments.filter(payment_date__year=now.year, payment_date__month=now.month)
+        collected = this_month_payments.aggregate(Sum('amount'))['amount__sum'] or 0.0
         
-        return context
-
-class PracticeReportView(LoginRequiredMixin, DashboardMixin, DetailView):
-    model = Practice
-    template_name = 'dashboard/practice_report.html'
-    context_object_name = 'practice'
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        now = timezone.now()
+        context['billed_this_month'] = round(float(billed), 2)
+        context['collected_this_month'] = round(float(collected), 2)
         
-        base_claims = Claim.objects.filter(practice=self.object)
-        metrics = self.get_dashboard_metrics(base_claims, now)
-        context.update(metrics)
+        # Outstanding is total lifetime outstanding
+        outstanding_qs = base_claims.filter(total_paid__lt=F('total_billed')).annotate(outstanding=F('total_billed') - F('total_paid'))
+        context['total_outstanding'] = round(float(outstanding_qs.aggregate(total=Sum('outstanding'))['total'] or 0), 2)
         
+        # Lists
         context['recent_claims'] = base_claims.order_by('-created_at')[:10]
-        context['recent_payments'] = Payment.objects.filter(claim__practice=self.object).order_by('-created_at')[:10]
-        
-        top_codes = ClaimLineItem.objects.filter(claim__practice=self.object, rejection_code__isnull=False).exclude(
-            rejection_code=''
-        ).values('rejection_code').annotate(count=Count('id')).order_by('-count')[:5]
-        
-        context['top_rejection_codes'] = top_codes
+        context['recent_payments'] = base_payments.order_by('-created_at')[:10]
         
         return context
-
-def export_report(request):
-    practice_id = request.GET.get('practice_id')
-    date_from = request.GET.get('date_from')
-    date_to = request.GET.get('date_to')
-    
-    user = request.user
-    is_admin = user.is_superuser or user.groups.filter(name='BureauAdmin').exists()
-    
-    wb = openpyxl.Workbook()
-    
-    # Claims Summary
-    ws1 = wb.active
-    ws1.title = "Claims Summary"
-    ws1.append(["Claim ID", "Practice", "Patient", "Date of Service", "Total Billed", "Total Paid", "Status"])
-    
-    claims = Claim.objects.all()
-    if not is_admin:
-        claims = claims.filter(practice__users=user)
-        
-    if practice_id:
-        claims = claims.filter(practice_id=practice_id)
-    if date_from:
-        claims = claims.filter(date_of_service__gte=date_from)
-    if date_to:
-        claims = claims.filter(date_of_service__lte=date_to)
-        
-    for c in claims:
-        ws1.append([c.id, str(c.practice), str(c.patient), c.date_of_service, c.total_billed, c.total_paid, c.claim_status])
-        
-    # Payments
-    ws2 = wb.create_sheet(title="Payments")
-    ws2.append(["Payment Date", "Claim ID", "Patient", "Amount", "Source", "Reference"])
-    
-    payments = Payment.objects.all()
-    if not is_admin:
-        payments = payments.filter(claim__practice__users=user)
-        
-    if practice_id:
-        payments = payments.filter(claim__practice_id=practice_id)
-    if date_from:
-        payments = payments.filter(payment_date__gte=date_from)
-    if date_to:
-        payments = payments.filter(payment_date__lte=date_to)
-        
-    for p in payments:
-        ws2.append([p.payment_date, p.claim.id, str(p.claim.patient), p.amount, p.get_payment_source_display(), p.reference_number])
-        
-    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-    response['Content-Disposition'] = 'attachment; filename=billing_report.xlsx'
-    wb.save(response)
-    
-    return response

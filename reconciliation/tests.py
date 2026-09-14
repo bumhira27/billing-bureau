@@ -32,7 +32,7 @@ class AutoMatcherTransactionalTests(TestCase):
             hpcsa_number="0731757MP",
             owner_name="Dr. Dimakatso Letsie",
             phone="0115551234",
-            fee_percentage=Decimal("2.00")
+
         )
 
         self.patient = Patient.objects.create(
@@ -182,3 +182,8 @@ class AutoMatcherTransactionalTests(TestCase):
         self.assertIsNotNone(log)
         self.assertEqual(log.match_method, 'manual')
         self.assertEqual(log.matched_by, self.user)
+
+
+
+
+

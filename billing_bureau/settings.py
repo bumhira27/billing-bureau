@@ -156,7 +156,7 @@ MFA_ENABLED = env.bool('MFA_ENABLED', default=False)
 if MFA_ENABLED:
     LOGIN_URL = 'two_factor:login'
 else:
-    LOGIN_URL = '/account/login/'
+    LOGIN_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = '/'
 CELERY_TASK_ALWAYS_EAGER = True 
 
@@ -222,3 +222,4 @@ JAZZMIN_UI_TWEAKS = {
         'success': 'btn-success'
     }
 }
+
