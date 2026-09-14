@@ -1,4 +1,4 @@
-﻿from django.views.generic import TemplateView
+from django.views.generic import TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Sum, F
 from django.utils import timezone
@@ -23,7 +23,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         context['claims_rejected_count'] = base_claims.filter(claim_status='rejected').count()
         
         if is_admin:
-            context['unmatched_payments_count'] = RemittanceLine.objects.filter(is_matched=False).count()
+            context['unmatched_payments_count'] = RemittanceLine.objects.filter(match_status='unmatched').count()
         else:
             context['unmatched_payments_count'] = 0
             
@@ -51,3 +51,4 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         context['recent_payments'] = base_payments.order_by('-created_at')[:10]
         
         return context
+
