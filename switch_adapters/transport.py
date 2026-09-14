@@ -65,7 +65,10 @@ class SwitchTransport:
             return False, raw_nak, parse_clearinghouse_ack(raw_nak)
 
         # 3. Handle Production SFTP vs Sandbox Simulation
-        if not dry_run and os.getenv("SFTP_HOST"):
+        from reconciliation.models import ClearinghouseConfig
+        config = ClearinghouseConfig.objects.filter(is_active=True).first()
+        
+        if not dry_run and (os.getenv("SFTP_HOST") or config):
             # Production SFTP Transmission logic
             try:
                 logger.info(f"Connecting to {provider} SFTP endpoint...")
@@ -95,3 +98,4 @@ class SwitchTransport:
 
         raw_ack = "\n".join(ack_lines)
         return True, raw_ack, parse_clearinghouse_ack(raw_ack)
+

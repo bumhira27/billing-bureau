@@ -91,3 +91,19 @@ class ReconciliationLog(TimeStampedModel):
 
     def __str__(self):
         return f"Log for {self.remittance_line}"
+
+class ClearinghouseConfig(TimeStampedModel):
+    name = models.CharField(max_length=100, default='MediSwitch')
+    sftp_host = models.CharField(max_length=255, help_text="e.g. sftp.mediswitch.co.za")
+    sftp_port = models.IntegerField(default=22)
+    sftp_username = models.CharField(max_length=100)
+    sftp_password = models.CharField(max_length=255, blank=True)
+    bureau_bhf = models.CharField(max_length=20, blank=True, help_text="Your Bureau Practice Number")
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        verbose_name = 'Clearinghouse Configuration'
+        verbose_name_plural = 'Clearinghouse Configurations'
+
+    def __str__(self):
+        return f"{self.name} ({self.sftp_username})"

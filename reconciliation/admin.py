@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import RemittanceFile, RemittanceLine, ReconciliationLog
+from .models import RemittanceFile, RemittanceLine, ReconciliationLog, ClearinghouseConfig
 
 @admin.register(RemittanceFile)
 class RemittanceFileAdmin(admin.ModelAdmin):
@@ -14,3 +14,8 @@ class RemittanceLineAdmin(admin.ModelAdmin):
     search_fields = ('membership_number', 'practice_number', 'tariff_code')
 
 admin.site.register(ReconciliationLog)
+
+@admin.register(ClearinghouseConfig)
+class ClearinghouseConfigAdmin(admin.ModelAdmin):
+    list_display = ('name', 'sftp_host', 'sftp_username', 'is_active')
+
