@@ -8,7 +8,7 @@
     <div>
         <h6 class="text-xs uppercase tracking-wider text-gray-500 font-bold mb-4">Needs Attention</h6>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <a href="{% url 'claims:claim_list' %}?status=rejected" class="bg-surface rounded-xl border border-red-200 shadow-soft p-5 flex items-center justify-between hover:bg-red-50 transition-colors cursor-pointer">
+            <a href="{% url 'claims:list' %}?status=rejected" class="bg-surface rounded-xl border border-red-200 shadow-soft p-5 flex items-center justify-between hover:bg-red-50 transition-colors cursor-pointer">
                 <div>
                     <h4 class="text-3xl font-bold text-red-600">{{ claims_rejected_count }}</h4>
                     <span class="text-sm text-gray-600 font-medium">Claims rejected</span>
@@ -98,4 +98,5 @@
     </div>
 </div>
 {% endblock %}
+
 
